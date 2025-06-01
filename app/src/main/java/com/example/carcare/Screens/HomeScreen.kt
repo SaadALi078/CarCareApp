@@ -8,15 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carcare.Component.ButtonComponent
 import com.example.carcare.Component.HeadingTextComponent
-import com.example.carcare.Data.LoginViewModel
+import com.example.carcare.Data.SignupViewModel
 
 @Composable
-fun HomeScreen(loginViewModel: LoginViewModel= viewModel()){
+fun HomeScreen(loginViewModel: SignupViewModel= viewModel()){
     Surface(
         color = Color.White,
         modifier = Modifier
@@ -29,7 +28,10 @@ ButtonComponent(value = stringResource(id = R.string.logout),
     onButtonClicked = {
         loginViewModel.logout()
 
-})
+},
+    isEnabled = true
+
+    )
 
         }
     }

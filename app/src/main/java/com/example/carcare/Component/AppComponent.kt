@@ -6,6 +6,7 @@ import android.icu.number.NumberFormatter
 import android.inputmethodservice.Keyboard
 import android.util.Log
 import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import com.example.carcare.R
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+
 
 import androidx.compose.material3.OutlinedTextFieldDefaults
 
@@ -32,6 +35,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,20 +51,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.node.Ref
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import java.time.format.TextStyle
+
 import androidx.compose.ui.unit.sp
 import com.example.carcare.ui.theme.TextColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -69,7 +76,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import com.example.carcare.ui.theme.BgColor
+
 import com.example.carcare.ui.theme.GrayColor
 import com.example.carcare.ui.theme.Secondary
 import com.example.carcare.ui.theme.primary
@@ -88,7 +95,7 @@ fun NormalTextComponent(value: String){
 
 
        )
-        , color = colorResource(R.color.colorText ),
+        , color = colorResource(R.color.colorWhite ),
         textAlign = TextAlign.Center
     )
 
@@ -99,14 +106,15 @@ fun HeadingTextComponent(value: String){
         text = value,
         modifier = Modifier.fillMaxWidth().heightIn(),
         style = androidx.compose.ui.text.TextStyle(
-            fontSize = 30.sp,
+            fontSize = 35.sp,
             fontStyle = FontStyle.Normal,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.SansSerif,
 
 
 
         )
-        , color = colorResource(R.color.colorText ),
+        , color = Color(0xFFBF0D81),
         textAlign = TextAlign.Center
     )
 
@@ -119,52 +127,73 @@ fun MyTextField(
     errorStatus: Boolean = false,
     errorMessage: String = ""
 ) {
-    val textValue = remember {
-        mutableStateOf(value = "")
-    }
+    val textValue = remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxWidth()) { // 🔸 Wrap everything in Column
+    Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(size = 4.dp)),
-            label = { Text(text = labelValue) },
             value = textValue.value,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = primary,
-                focusedLabelColor = primary,
-                cursorColor = primary,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             onValueChange = {
                 textValue.value = it
                 onTextSelected(it)
             },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(62.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            label = {
+                Text(
+                    text = labelValue,
+                    color = Color(0xFFDCD7D7) // 💡 Label text color
+                )
+            },
+            textStyle = androidx.compose.ui.text.TextStyle( // 💡 Important part
+                color = Color(0xFFDCD7D7),
+                fontSize = 16.sp
+            ),
             leadingIcon = {
                 Icon(
                     painter = painterResources,
                     contentDescription = null,
+                    tint = Color(0xFFDCD7D7),//, icon color
                     modifier = Modifier.size(20.dp)
                 )
             },
+            shape = RoundedCornerShape(percent = 50),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFF2D2C2C),   // when text field is focused
+                unfocusedContainerColor = Color(0xFF2D2C2C), // when not focused
+
+                focusedBorderColor = colorResource(R.color.colorGray),
+                unfocusedBorderColor = colorResource(R.color.colorGray),
+                disabledBorderColor = colorResource(R.color.colorGray),
+                errorBorderColor = Color(0xFFFF5C5C), // red color for errors
+
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+
+                focusedPlaceholderColor = Color.DarkGray,
+                unfocusedPlaceholderColor = Color.DarkGray,
+
+                focusedLeadingIconColor = Color.DarkGray,
+                unfocusedLeadingIconColor = Color.DarkGray
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             isError = !errorStatus,
             singleLine = true,
             maxLines = 1
         )
 
-        // 🔸 Show error message only when needed
         if (!errorStatus && errorMessage.isNotEmpty()) {
             Text(
                 text = errorMessage,
-                color = Color.Red,
+                color = Color(0xFFFF5C5C),
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
             )
         }
     }
 }
+
 
 
 @Composable
@@ -186,16 +215,32 @@ fun passwordTextField(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(size = 4.dp)),
-        label = { Text(text = labelValue) },
+        label = { Text(text = labelValue,
+                color = Color(0xFFDCD7D7))
+                },
+
         value = password.value,
+        shape = RoundedCornerShape(percent = 50),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = primary,
-            focusedLabelColor = primary,
-            cursorColor = primary,
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
+            focusedContainerColor = Color(0xFF2D2C2C),   // when text field is focused
+            unfocusedContainerColor = Color(0xFF2D2C2C), // when not focused
+
+            focusedBorderColor = colorResource(R.color.colorGray),
+            unfocusedBorderColor = colorResource(R.color.colorGray),
+            disabledBorderColor = colorResource(R.color.colorGray),
+            errorBorderColor = Color(0xFFFF5C5C), // red color for errors
+
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+
+            focusedPlaceholderColor = Color.DarkGray,
+            unfocusedPlaceholderColor = Color.DarkGray,
+
+            focusedLeadingIconColor = Color.DarkGray,
+            unfocusedLeadingIconColor = Color.DarkGray
         ),
-        keyboardOptions = KeyboardOptions(
+
+                keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done
         ),
@@ -205,9 +250,14 @@ fun passwordTextField(
             password.value = it
             onTextSelected(it) // ✅ now this will work fine
         },
+        textStyle = androidx.compose.ui.text.TextStyle( // 💡 Important part
+            color = Color(0xFFDCD7D7),
+            fontSize = 16.sp
+        ),
         leadingIcon = {
             Icon(
                 painter = painterResources,
+                tint = Color(0xFFDCD7D7),
                 contentDescription = null,
                 modifier = Modifier.size(20.dp)
             )
@@ -238,14 +288,18 @@ fun passwordTextField(
     if (errorStatus) {
         Text(
             text = "Password must be 8+ chars, include upper, lower, number & special char.",
-            color = Color.Red,
+            color = Color(0xFFFF5C5C),
             fontSize = 12.sp
         )
     }
 
 }
 @Composable
-fun CheckboxComponent(value: String , onTextSelected: (String) -> Unit,onCheckedChange:(Boolean)-> Unit) {
+fun CheckboxComponent(
+    value: String,
+    onTextSelected: (String) -> Unit,
+    onCheckedChange: (Boolean) -> Unit
+) {
     val checkState = remember { mutableStateOf(false) }
 
     Row(
@@ -259,58 +313,62 @@ fun CheckboxComponent(value: String , onTextSelected: (String) -> Unit,onChecked
             onCheckedChange = {
                 checkState.value = it
                 onCheckedChange.invoke(it)
-            }
+            },
+            colors = CheckboxDefaults.colors(
+                checkedColor = Color(0xFFBF0D81),      // Box fill when checked
+                uncheckedColor = Color(0xFFBF0D81),    // Border color when unchecked
+                checkmarkColor = Color.White           // Tick mark color
+            )
         )
         Spacer(modifier = Modifier.width(8.dp))
-        ClickableTextComponent(value = value,onTextSelected)
+        ClickableTextComponent(value = value, onTextSelected = onTextSelected)
     }
 }
+
 @Composable
-fun ClickableTextComponent(value: String,onTextSelected:(String)-> Unit) {
-    // Define the text parts
+fun ClickableTextComponent(value: String, onTextSelected: (String) -> Unit) {
     val initialText = "By continuing you accept our "
     val privacyPolicyText = "Privacy Policy"
     val andText = " and "
     val termAndConditionsText = "Terms of Use"
 
-    // Building the annotated string
     val annotatedString = buildAnnotatedString {
-        append(initialText)
-
-        // Privacy Policy clickable part
-        withStyle(style = SpanStyle(color = Color.Blue)) {
-            pushStringAnnotation(tag = privacyPolicyText, annotation = privacyPolicyText)
-            append(privacyPolicyText)
+        // Initial non-clickable white text
+        withStyle(style = SpanStyle(color = Color.White)) {
+            append(initialText)
         }
 
-        append(andText)
+        // Privacy Policy clickable pink text
+        withStyle(style = SpanStyle(color = Color(0xFFBF0D81))) {
+            pushStringAnnotation(tag = "privacy_policy", annotation = privacyPolicyText)
+            append(privacyPolicyText)
+            pop()
+        }
 
-        // Terms of Use clickable part
-        withStyle(style = SpanStyle(color = Color.Blue)) {
-            pushStringAnnotation(tag = termAndConditionsText, annotation = termAndConditionsText)
+        // ' and ' non-clickable white text
+        withStyle(style = SpanStyle(color = Color.White)) {
+            append(andText)
+        }
+
+        // Terms of Use clickable pink text
+        withStyle(style = SpanStyle(color = Color(0xFFBF0D81))) {
+            pushStringAnnotation(tag = "terms_of_use", annotation = termAndConditionsText)
             append(termAndConditionsText)
+            pop()
         }
     }
 
-    // Make the text clickable
     ClickableText(
         text = annotatedString,
         onClick = { offset ->
-            // Find the clicked part of the text and handle accordingly
-            annotatedString.getStringAnnotations(offset, offset).firstOrNull()?.
-            also { span ->
-                        // Handle Privacy Policy Click (e.g., navigate to Privacy Policy screen)
-                        Log.d("ClickableTextComponent", "{$span}")
-                if (span.item==termAndConditionsText || (span.item==privacyPolicyText) ){
-                    onTextSelected(span.item)
+            annotatedString.getStringAnnotations(start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    onTextSelected(annotation.item)
                 }
-                    }
-
-
-
         }
     )
 }
+
 @Composable
 fun ButtonComponent(value: String,onButtonClicked:()-> Unit,isEnabled : Boolean=false){
     Button(onClick =  {
@@ -331,8 +389,7 @@ fun ButtonComponent(value: String,onButtonClicked:()-> Unit,isEnabled : Boolean=
             .fillMaxWidth()
             .heightIn(48.dp)
             .background(
-                brush = Brush.horizontalGradient(listOf(Secondary,primary)),
-                shape = RoundedCornerShape(50.dp),
+                color = Color(0xFFBF0D81)
 
 
             ),
@@ -343,6 +400,7 @@ fun ButtonComponent(value: String,onButtonClicked:()-> Unit,isEnabled : Boolean=
         {
             Text(text = value,
                 fontSize = 18.sp,
+                color = Color.White,
                 fontWeight = FontWeight.Bold)
         }
         }
@@ -357,11 +415,11 @@ fun DividerTextComponent() {
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            color = GrayColor,
+            color = White,
             thickness = 1.dp
         )
 
-        Text(text = "or", fontSize = 18.sp, color = TextColor,
+        Text(text = "or", fontSize = 18.sp, color = White,
             modifier = Modifier.padding(7.dp))
         Divider(
             modifier = Modifier
@@ -386,7 +444,7 @@ fun ClickableLoginTextComponent(tryingToLogin: Boolean=true, onTextSelected:(Str
         append(initialText)
 
         // Privacy Policy clickable part
-        withStyle(style = SpanStyle(color = Color.Blue)) {
+        withStyle(style = SpanStyle(color = Color(0xFFc451c9))) {
             pushStringAnnotation(tag = LoginText, annotation = LoginText)
             append(LoginText)
         }
@@ -398,9 +456,10 @@ fun ClickableLoginTextComponent(tryingToLogin: Boolean=true, onTextSelected:(Str
         modifier = Modifier.fillMaxWidth().heightIn(min = 40 .dp),
         style = androidx.compose.ui.text.TextStyle(
             fontSize = 21.sp,
-            fontStyle = FontStyle.Normal,
+            fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+                    color = Color.White
 
 
 
@@ -436,7 +495,7 @@ fun UnderlineTextComponent(value: String){
 
 
         )
-        , color = colorResource(R.color.colorGray),
+        , color = Color.White,
         textAlign = TextAlign.Center,
         textDecoration = TextDecoration.Underline
     )

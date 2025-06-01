@@ -4,15 +4,13 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.carcare.Data.rules.Validator
-import com.example.carcare.Screens.HomeScreen
-import com.example.carcare.Screens.LoginScreen
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 
-class LoginViewModel : ViewModel() {
-    private val TAG = LoginViewModel::class.simpleName
+class SignupViewModel : ViewModel() {
+    private val TAG = SignupViewModel::class.simpleName
 
     var RegistrationUIState = mutableStateOf(RegistrationUIState())
 
@@ -20,31 +18,31 @@ class LoginViewModel : ViewModel() {
 
     var signupInProgress=mutableStateOf(false)
 
-    fun onEvent(event: UIEvent) {
+    fun onEvent(event: SingupUIEvent) {
 
         when (event) {
-            is UIEvent.FisrtNameChange -> {
+            is SingupUIEvent.FisrtNameChange -> {
                 RegistrationUIState.value = RegistrationUIState.value.copy(
                     firstname = event.firstName,
                 )
 
             }
 
-            is UIEvent.LastNameChange -> {
+            is SingupUIEvent.LastNameChange -> {
                 RegistrationUIState.value = RegistrationUIState.value.copy(
                     lastname = event.lastName
                 )
 
             }
 
-            is UIEvent.EmailChange -> {
+            is SingupUIEvent.EmailChange -> {
                 RegistrationUIState.value = RegistrationUIState.value.copy(
                     email = event.email
                 )
 
             }
 
-            is UIEvent.PasswordChange -> {
+            is SingupUIEvent.PasswordChange -> {
                 val passwordResult = Validator.validatePassword(event.password)
 
                 RegistrationUIState.value = RegistrationUIState.value.copy(
@@ -58,11 +56,11 @@ class LoginViewModel : ViewModel() {
 
             }
 
-            is UIEvent.RegisterButtonClicked->{
+            is SingupUIEvent.RegisterButtonClicked->{
                 signup()
             }
 
-is UIEvent.PrivacyPolicyCheckBoxClicked -> {
+is SingupUIEvent.PrivacyPolicyCheckBoxClicked -> {
     RegistrationUIState.value=RegistrationUIState.value.copy(
         privacyPolicyError = false,
         privacyPolicyAccepted = event.status
@@ -162,7 +160,9 @@ firebaseAuth.signOut()
 
         val authStateListener= AuthStateListener{
             if (it.currentUser==null){
-                Log.d(TAG,"Inside sign out success")}
+                Log.d(TAG,"Inside sign out success")
+                Router.navigateTo((Screen.LoginScreen))
+            }
             else{
                 Log.d(TAG,"Insdie sign out is not complete")
 

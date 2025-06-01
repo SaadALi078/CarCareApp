@@ -65,6 +65,8 @@ dependencies {
 
     // Material3 (from your libs.versions.toml if used)
     implementation(libs.androidx.material3)
+    implementation(libs.junit)
+    implementation(libs.androidx.junit)
 
     // Testing
     testImplementation(libs.junit)
@@ -76,12 +78,13 @@ dependencies {
     // Debug tools
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    debugImplementation(libs.androidx.ui.tooling)
 
 
 //view model
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
-
+androidTestImplementation(libs.androidx.ui.test.junit4)
 
     //firebase Authentication
     implementation (platform  ("com.google.firebase:firebase-bom:33.13.0"))
