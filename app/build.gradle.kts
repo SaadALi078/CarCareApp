@@ -49,45 +49,36 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
 
-    // Compose BOM - handles Compose versions automatically
+    // Compose BOM - manages Compose versions
     implementation(platform(libs.androidx.compose.bom))
 
-    // Compose UI
+    // Compose UI libraries
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
 
-    // Material 3 components
-    implementation("androidx.compose.material3:material3")
+    // Material 3 - use explicit version and only once
+    implementation("androidx.compose.material3:material3:1.1.0")
 
-    // Material icons extended
-    implementation("androidx.compose.material:material-icons-extended")
+    // Material icons (Material 2 icons)
+    implementation("androidx.compose.material:material-icons-extended:1.4.3")
 
-    // Material3 (from your libs.versions.toml if used)
-    implementation(libs.androidx.material3)
-    implementation(libs.junit)
-    implementation(libs.androidx.junit)
+    // ViewModel Compose integration
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
-    // Testing
+    // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    // Debug tools
+    // Debugging tools for Compose
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    debugImplementation(libs.androidx.ui.tooling)
 
-
-//view model
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-
-androidTestImplementation(libs.androidx.ui.test.junit4)
-
-    //firebase Authentication
-    implementation (platform  ("com.google.firebase:firebase-bom:33.13.0"))
-implementation("com.google.firebase:firebase-auth-ktx:23.2.0")
+    // Firebase dependencies with BOM for version alignment
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation("com.google.firebase:firebase-auth-ktx:23.2.0")
     implementation("com.google.firebase:firebase-analytics")
 }

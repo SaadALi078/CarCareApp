@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carcare.Component.ButtonComponent
 import com.example.carcare.Component.ClickableLoginTextComponent
+import com.example.carcare.Component.ClickableUnderlineTextComponent
 import com.example.carcare.Component.DividerTextComponent
 import com.example.carcare.Component.HeadingTextComponent
 import com.example.carcare.Component.MyTextField
@@ -38,14 +39,26 @@ import com.example.carcare.navigation.BackHandler
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
 import kotlin.math.log
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 
 
 @Composable
 fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // 🌄 Background image
+    val context = LocalContext.current
+    val errorMessage = loginViewModel.errorMessage.value
+
+    // Show toast when errorMessage is updated
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            loginViewModel.errorMessage.value = null  // Clear message after showing
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background Image
         Image(
             painter = painterResource(id = R.drawable.bg),
             contentDescription = null,
@@ -53,22 +66,17 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
             contentScale = ContentScale.Crop
         )
 
-        // 🌟 Foreground content (login form)
+        // Login Form UI
         Surface(
             color = Color.Transparent,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(28.dp)
-        )
-
-        {
+        ) {
             Column {
-                Spacer(modifier = Modifier.height(35.dp))
+                Spacer(modifier = Modifier.height(215.dp))
 
-
-
-
-                Spacer(modifier = Modifier.height(180.dp))
+                // Email Input
                 MyTextField(
                     labelValue = stringResource(id = R.string.email),
                     painterResource(id = R.drawable.email),
@@ -78,7 +86,10 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
                     },
                     errorStatus = loginViewModel.LoginUIState.value.emailError
                 )
+
                 Spacer(modifier = Modifier.height(15.dp))
+
+                // Password Input
                 passwordTextField(
                     labelValue = stringResource(id = R.string.password),
                     painterResource(id = R.drawable.passwordicon),
@@ -88,9 +99,9 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
                     errorStatus = loginViewModel.LoginUIState.value.passwordError
                 )
 
-
-
                 Spacer(modifier = Modifier.height(40.dp))
+
+                // Login Button
                 ButtonComponent(
                     value = stringResource(id = R.string.login),
                     onButtonClicked = {
@@ -100,10 +111,16 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
-                UnderlineTextComponent(value = stringResource(id = R.string.forgot_password))
-                Spacer(modifier = Modifier.height(20.dp))
-                DividerTextComponent()
 
+                // Forgot Password
+                ClickableUnderlineTextComponent(value = stringResource(id = R.string.forgot_password)) {
+                    Router.navigateTo(Screen.ForgetPasswordScreen)
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Divider and Sign up link
+                DividerTextComponent()
                 ClickableLoginTextComponent(
                     tryingToLogin = false,
                     onTextSelected = { Router.navigateTo(Screen.Signup) }
@@ -111,7 +128,7 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
             }
         }
 
-        // 🌀 Show loading indicator when logging in
+        // Show loader while logging in
         if (loginViewModel.logininProgress.value) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -119,7 +136,7 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
         }
     }
 
-    // 🔙 Back press handling
+    // Back press goes to signup
     BackHandler {
         Router.navigateTo(Screen.Signup)
     }
