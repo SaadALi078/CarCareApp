@@ -1,0 +1,326 @@
+package com.example.carcare.screens
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.carcare.Data.MaintenanceDashboardViewModel
+import com.example.carcare.Data.MaintenanceCategory
+import com.example.carcare.Data.MaintenanceRecord
+import com.example.carcare.R
+import com.example.carcare.navigation.Router
+import com.example.carcare.navigation.Screen
+import com.example.carcare.ui.theme.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MaintenanceScreen() {
+    val viewModel: MaintenanceDashboardViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DeepBlack)
+    ) {
+        AnimatedBackground(modifier = Modifier.matchParentSize())
+
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                0.0f to AccentMagenta,
+                                0.5f to PrimaryPurple,
+                                1.0f to DeepBlack.copy(alpha = 0.7f)
+                            )
+                        )
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = { Router.navigateTo(Screen.HomeScreen) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        Text(
+                            text = "Maintenance Hub",
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
+                        )
+
+                        Spacer(modifier = Modifier.width(48.dp))
+                    }
+                }
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { Router.navigateTo(Screen.MaintenanceLogScreen) },
+                    containerColor = PrimaryPurple,
+                    contentColor = Color.White,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .border(
+                            width = 2.dp,
+                            brush = Brush.linearGradient(colors = listOf(PrimaryPurple, AccentMagenta)),
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Record",
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            }
+        ) { paddingValues ->
+            if (state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = PrimaryPurple)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 100.dp)
+                ) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            StatCard("Upcoming", state.upcomingCount.toString(), Color(0xFFFF9800), screenWidth * 0.4f)
+                            StatCard("Overdue", state.overdueCount.toString(), Color(0xFFF44336), screenWidth * 0.4f)
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Maintenance Categories",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
+                        )
+
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .heightIn(min = 0.dp, max = 300.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            userScrollEnabled = false
+                        ) {
+                            items(state.categories.size) { index ->
+                                val category = state.categories[index]
+                                MaintenanceCategoryCard(category) {
+                                    viewModel.selectCategory(category.name)
+                                    Router.navigateTo(Screen.MaintenanceLogScreen)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Recent Maintenance",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
+                        )
+                    }
+
+                    items(state.recentMaintenance.size) { index ->
+                        val record = state.recentMaintenance[index]
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
+                        ) {
+                            MaintenanceRecordItem(record)
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+@Composable
+fun StatCard(title: String, value: String, color: Color, width: Dp) {
+    Card(
+        modifier = Modifier
+            .width(width)
+            .height(100.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBackground),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        border = BorderStroke(
+            1.dp,
+            Brush.horizontalGradient(
+                colors = listOf(PrimaryPurple.copy(alpha = 0.7f), AccentMagenta.copy(alpha = 0.7f))
+            )
+        )
+    ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = value, color = color, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(text = title, color = LightPurple, fontSize = 16.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun MaintenanceCategoryCard(category: MaintenanceCategory, onClick: () -> Unit) {
+    val alpha by rememberInfiniteTransition().animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBackground),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        border = BorderStroke(1.dp, Brush.horizontalGradient(listOf(PrimaryPurple, AccentMagenta)))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            PrimaryPurple.copy(alpha = alpha * 0.3f),
+                            AccentMagenta.copy(alpha = alpha * 0.1f)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    painter = painterResource(id = category.iconRes),
+                    contentDescription = category.name,
+                    tint = LightPurple,
+                    modifier = Modifier.size(40.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = category.name, color = Color.White, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+@Composable
+fun MaintenanceRecordItem(record: MaintenanceRecord) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBackground),
+        border = BorderStroke(1.dp, PrimaryPurple.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .background(
+                        Brush.radialGradient(colors = listOf(PrimaryPurple, AccentMagenta)),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_wrench),
+                    contentDescription = "Maintenance",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(text = record.type, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = "Mileage: ${record.mileage} km", color = LightPurple, fontSize = 14.sp)
+                Text(text = "Date: ${record.date}", color = LightPurple.copy(alpha = 0.7f), fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = "$${"%.2f".format(record.cost)}",
+                color = if (record.cost > 0) LightPurple else Color.Gray,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        }
+    }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun MaintenanceScreenPreview() {
+    MaintenanceScreen()
+}

@@ -40,107 +40,107 @@ import com.example.carcare.navigation.Screen
 @Composable
 fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
 
-        Box(modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center) {
 
-            Image(
-                painter = painterResource(id = R.drawable.bg2),
-                contentDescription = "Background Image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+        Image(
+            painter = painterResource(id = R.drawable.bg2),
+            contentDescription = "Background Image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
 
-            Surface(
-                color = Color.Transparent,
-                modifier = Modifier
-                    .fillMaxSize()
-                    
-                    .padding(28.dp)
-            ) {
-                Spacer(modifier = Modifier.height(20.dp))
-                Column {
+        Surface(
+            color = Color.Transparent,
+            modifier = Modifier
+                .fillMaxSize()
+
+                .padding(28.dp)
+        ) {
+            Spacer(modifier = Modifier.height(5.dp))
+            Column {
 
 
-                    Spacer(modifier = Modifier.height(265.dp))
+                Spacer(modifier = Modifier.height(200.dp))
 
-                    MyTextField(
-                        labelValue = stringResource(id = R.string.firstname),
-                        painterResources = painterResource(id = R.drawable.profileicon),
-                        onTextSelected = {
-                            loginViewModel.onEvent(SingupUIEvent.FisrtNameChange(it))
-                        },
-                        errorStatus = loginViewModel.RegistrationUIState.value.firstNameError
+                MyTextField(
+                    labelValue = stringResource(id = R.string.firstname),
+                    painterResources = painterResource(id = R.drawable.profileicon),
+                    onTextSelected = {
+                        loginViewModel.onEvent(SingupUIEvent.FisrtNameChange(it))
+                    },
+                    errorStatus = loginViewModel.RegistrationUIState.value.firstNameError
+                )
+                Spacer(modifier = Modifier.height(0.dp))
+                MyTextField(
+                    labelValue = stringResource(id = R.string.lastname),
+                    painterResources = painterResource(id = R.drawable.profileicon),
+                    onTextSelected = {
+                        loginViewModel.onEvent(SingupUIEvent.LastNameChange(it))
+                    },
+                    errorStatus = loginViewModel.RegistrationUIState.value.lastNameError
+                )
+                Spacer(modifier = Modifier.height(0.dp))
+                MyTextField(
+                    labelValue = stringResource(id = R.string.email),
+                    errorMessage = stringResource(id = R.string.emailerro),
+                    painterResources = painterResource(id = R.drawable.email),
+                    onTextSelected = {
+                        loginViewModel.onEvent(SingupUIEvent.EmailChange(it))
+
+
+                    },
+                    errorStatus = loginViewModel.RegistrationUIState.value.emailError,
+
                     )
-                    Spacer(modifier = Modifier.height(3.dp))
-                    MyTextField(
-                        labelValue = stringResource(id = R.string.lastname),
-                        painterResources = painterResource(id = R.drawable.profileicon),
-                        onTextSelected = {
-                            loginViewModel.onEvent(SingupUIEvent.LastNameChange(it))
-                        },
-                        errorStatus = loginViewModel.RegistrationUIState.value.lastNameError
-                    )
-                    Spacer(modifier = Modifier.height(3.dp))
-                    MyTextField(
-                        labelValue = stringResource(id = R.string.email),
-                        errorMessage = stringResource(id = R.string.emailerro),
-                        painterResources = painterResource(id = R.drawable.email),
-                        onTextSelected = {
-                            loginViewModel.onEvent(SingupUIEvent.EmailChange(it))
-
-
-                        },
-                        errorStatus = loginViewModel.RegistrationUIState.value.emailError,
-
+                Spacer(modifier = Modifier.height(0.dp))
+                passwordTextField(
+                    labelValue = stringResource(id = R.string.password),
+                    painterResources = painterResource(id = R.drawable.passwordicon),
+                    onTextSelected = {
+                        loginViewModel.onEvent(SingupUIEvent.PasswordChange(it))
+                        Log.d(
+                            "DEBUG",
+                            "Password Error: ${loginViewModel.RegistrationUIState.value.passwordError}"
                         )
-                    Spacer(modifier = Modifier.height(3.dp))
-                    passwordTextField(
-                        labelValue = stringResource(id = R.string.password),
-                        painterResources = painterResource(id = R.drawable.passwordicon),
-                        onTextSelected = {
-                            loginViewModel.onEvent(SingupUIEvent.PasswordChange(it))
-                            Log.d(
-                                "DEBUG",
-                                "Password Error: ${loginViewModel.RegistrationUIState.value.passwordError}"
-                            )
 
-                        },
-                        errorStatus = loginViewModel.RegistrationUIState.value.passwordError
-                    )
-                    CheckboxComponent(
-                        value = stringResource(id = R.string.terms_and_Conditions),
-                        onTextSelected = {
-                            Router.navigateTo(Screen.TermsAndCondtionsScreen)
-                        },
-                        onCheckedChange = {
-                            loginViewModel.onEvent(SingupUIEvent.PrivacyPolicyCheckBoxClicked(it))
-                        })
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    ButtonComponent(
-                        value = stringResource(id = R.string.register),
-                        onButtonClicked = {
-                            loginViewModel.onEvent(SingupUIEvent.RegisterButtonClicked)
-                        },
-                        isEnabled = loginViewModel.allValidationsPassed.value
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    DividerTextComponent()
-
-                    ClickableLoginTextComponent(tryingToLogin = true, onTextSelected = {
-                        Router.navigateTo(Screen.LoginScreen)
-
-
+                    },
+                    errorStatus = loginViewModel.RegistrationUIState.value.passwordError
+                )
+                CheckboxComponent(
+                    value = stringResource(id = R.string.terms_and_Conditions),
+                    onTextSelected = {
+                        Router.navigateTo(Screen.TermsAndCondtionsScreen)
+                    },
+                    onCheckedChange = {
+                        loginViewModel.onEvent(SingupUIEvent.PrivacyPolicyCheckBoxClicked(it))
                     })
+                Spacer(modifier = Modifier.height(0.dp))
 
-                }
-            }
-            if (loginViewModel.signupInProgress.value) {
-                CircularProgressIndicator()
+                ButtonComponent(
+                    value = stringResource(id = R.string.register),
+                    onButtonClicked = {
+                        loginViewModel.onEvent(SingupUIEvent.RegisterButtonClicked)
+                    },
+                    isEnabled = loginViewModel.allValidationsPassed.value
+                )
+
+                Spacer(modifier = Modifier.height(3.dp))
+                DividerTextComponent()
+
+                ClickableLoginTextComponent(tryingToLogin = true, onTextSelected = {
+                    Router.navigateTo(Screen.LoginScreen)
+
+
+                })
+
             }
         }
+        if (loginViewModel.signupInProgress.value) {
+            CircularProgressIndicator()
+        }
     }
+}
 
 
 
@@ -151,6 +151,15 @@ fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
 
 @Preview(showBackground = true)
 @Composable
-  fun DefaultPreviewOfSignUpScreen() {
+fun DefaultPreviewOfSignUpScreen() {
     SignupScreen()
 }
+
+
+
+
+
+
+
+
+

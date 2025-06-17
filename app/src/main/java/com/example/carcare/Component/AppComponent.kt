@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.compose.foundation.Image
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -368,7 +369,15 @@ fun ClickableTextComponent(value: String, onTextSelected: (String) -> Unit) {
         }
     )
 }
-
+@Composable
+fun ClickableUnderlineTextComponent(value: String, onClick: () -> Unit) {
+    Text(
+        text = value,
+        color = Color.White,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier.clickable { onClick() }
+    )
+}
 @Composable
 fun ButtonComponent(value: String,onButtonClicked:()-> Unit,isEnabled : Boolean=false){
     Button(onClick =  {
@@ -425,7 +434,7 @@ fun DividerTextComponent() {
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            color = GrayColor,
+            color = White,
             thickness = 1.dp
         )
     }
