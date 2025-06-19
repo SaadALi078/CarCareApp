@@ -1,0 +1,6 @@
+[33m80177c1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m  "Build: Complete Maintenance feature screen" -m "Added viewmodel binding, icons, stat cards, dynamic category grid rendering, and recent maintenance list with animations."
+[33m4758f18[m  "Build: Complete Maintenance feature screen" -m "Added viewmodel binding, icons, stat cards, dynamic category grid rendering, and recent maintenance list with animations."
+[33m773c526[m Add a backhandler in ForgetPasswordScreen.kt adjust SignupScreen.kt
+[33m50b7090[m Integrated Firebase authentication and created modern UI for Signup/Login screens
+[33m0364ecc[m Add signup and login validation
+[33m940dd91[m Initial commit

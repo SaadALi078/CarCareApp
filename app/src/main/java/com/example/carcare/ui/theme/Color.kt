@@ -7,7 +7,11 @@ val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
 val PrimaryPinkBlended = Color(0xFFE91E63) // Example
 val PrimaryPink = Color(0xFFC16083)
-
+val DeepBlack = Color(0xFF060606)
+val PrimaryPurple = Color(0xFFC451C9)
+val AccentMagenta = Color(0xFFA9016D)
+val CardBackground = Color(0xFF1C1B1F)
+val LightPurple = Color(0xFFE0BCFF)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)

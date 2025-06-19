@@ -17,6 +17,11 @@ sealed class Screen {
     object NotificationsScreen : Screen()
     object EmergencyHelpScreen : Screen()
 
+        object MaintenanceLogScreen : Screen() // ✅ Add this if missing
+        // ... other screens
+
+
+
 }
 
 // Singleton object for navigation
