@@ -1,9 +1,6 @@
 // Data/MaintenanceDashboardViewModel.kt
-package com.example.carcare.Data
+package com.example.carcare.data
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carcare.R
@@ -89,7 +86,7 @@ data class MaintenanceCategory(
     val iconRes: Int // Drawable resource ID
 )
 
-data class MaintenanceRecord(
+data class MaintenancesRecord(
     val id: String,
     val type: String,
     val date: String,

@@ -1,11 +1,10 @@
 package com.example.carcare
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.example.carcare.Data.LoginUIEvent
-import com.example.carcare.Data.LoginUIState
-import com.example.carcare.Data.rules.Validator
+import com.example.carcare.data.LoginUIEvent
+import com.example.carcare.data.LoginUIState
+import com.example.carcare.data.rules.Validator
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth

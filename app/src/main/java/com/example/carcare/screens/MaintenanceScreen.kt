@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -27,13 +26,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.carcare.Data.MaintenanceDashboardViewModel
-import com.example.carcare.Data.MaintenanceCategory
-import com.example.carcare.Data.MaintenanceRecord
+import com.example.carcare.data.MaintenanceDashboardViewModel
+import com.example.carcare.data.MaintenanceCategory
+import com.example.carcare.data.MaintenanceRecord
 import com.example.carcare.R
+import com.example.carcare.Screens.AccentMagenta
+import com.example.carcare.Screens.CardBackground
+import com.example.carcare.Screens.DeepBlack
+import com.example.carcare.Screens.LightPurple
+import com.example.carcare.Screens.PrimaryPurple
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
-import com.example.carcare.ui.theme.*
+
+import com.example.carcare.ui.components.AnimatedBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,13 +48,7 @@ fun MaintenanceScreen() {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DeepBlack)
-    ) {
-        AnimatedBackground(modifier = Modifier.matchParentSize())
-
+    AnimatedBackground(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -59,9 +58,9 @@ fun MaintenanceScreen() {
                         .height(120.dp)
                         .background(
                             Brush.verticalGradient(
-                                0.0f to AccentMagenta,
-                                0.5f to PrimaryPurple,
-                                1.0f to DeepBlack.copy(alpha = 0.7f)
+                                0.0f to AccentMagenta.copy(alpha = 0.7f),
+                                0.5f to PrimaryPurple.copy(alpha = 0.7f),
+                                1.0f to DeepBlack.copy(alpha = 0.5f)
                             )
                         )
                         .padding(horizontal = 24.dp, vertical = 16.dp),
@@ -146,20 +145,28 @@ fun MaintenanceScreen() {
                             modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
                         )
 
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2),
+                        // FIXED CATEGORY GRID SECTION
+                        // Calculate height needed for 3 rows (6 items)
+                        val gridHeight = (120 * 3 + 16 * 2).dp // Card height * rows + spacing * (rows-1)
+
+                        Box(
                             modifier = Modifier
+                                .height(gridHeight)
                                 .padding(horizontal = 16.dp)
-                                .heightIn(min = 0.dp, max = 300.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            userScrollEnabled = false
                         ) {
-                            items(state.categories.size) { index ->
-                                val category = state.categories[index]
-                                MaintenanceCategoryCard(category) {
-                                    viewModel.selectCategory(category.name)
-                                    Router.navigateTo(Screen.MaintenanceLogScreen)
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                userScrollEnabled = true // Enable scrolling for this section
+                            ) {
+                                items(state.categories.size) { index ->
+                                    val category = state.categories[index]
+                                    MaintenanceCategoryCard(category) {
+                                        viewModel.selectCategory(category.name)
+                                        Router.navigateTo(Screen.MaintenanceLogScreen)
+                                    }
                                 }
                             }
                         }
@@ -191,9 +198,6 @@ fun MaintenanceScreen() {
         }
     }
 }
-
-
-
 
 @Composable
 fun StatCard(title: String, value: String, color: Color, width: Dp) {
@@ -234,7 +238,7 @@ fun MaintenanceCategoryCard(category: MaintenanceCategory, onClick: () -> Unit) 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
+            .height(120.dp) // Fixed height for each card
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardBackground),

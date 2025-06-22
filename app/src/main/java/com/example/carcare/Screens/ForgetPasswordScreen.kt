@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.carcare.Data.ForgetPasswordViewModel
+import com.example.carcare.data.ForgetPasswordViewModel
 import com.example.carcare.navigation.BackHandler
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen

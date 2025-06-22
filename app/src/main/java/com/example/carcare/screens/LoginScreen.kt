@@ -28,7 +28,7 @@ import com.example.carcare.Component.ClickableUnderlineTextComponent
 import com.example.carcare.Component.DividerTextComponent
 import com.example.carcare.Component.MyTextField
 import com.example.carcare.Component.passwordTextField
-import com.example.carcare.Data.LoginUIEvent
+import com.example.carcare.data.LoginUIEvent
 import com.example.carcare.LoginViewModel
 import com.example.carcare.navigation.BackHandler
 import com.example.carcare.navigation.Router

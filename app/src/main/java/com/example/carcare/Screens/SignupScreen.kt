@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.carcare.Component.NormalTextComponent
 
 import com.example.carcare.R
 
@@ -28,11 +27,10 @@ import com.example.carcare.Component.ButtonComponent
 import com.example.carcare.Component.CheckboxComponent
 import com.example.carcare.Component.ClickableLoginTextComponent
 import com.example.carcare.Component.DividerTextComponent
-import com.example.carcare.Component.HeadingTextComponent
 import com.example.carcare.Component.MyTextField
 import com.example.carcare.Component.passwordTextField
-import com.example.carcare.Data.SignupViewModel
-import com.example.carcare.Data.SingupUIEvent
+import com.example.carcare.data.SignupViewModel
+import com.example.carcare.data.SingupUIEvent
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
 
