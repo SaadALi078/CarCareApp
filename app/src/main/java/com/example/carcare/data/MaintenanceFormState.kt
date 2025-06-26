@@ -1,10 +1,14 @@
-package com.example.carcare.viewmodels
+package com.example.carcare.data
 
 import com.example.carcare.data.MaintenanceRecord
 
 data class MaintenanceFormState(
-    val isLoading: Boolean = false,
     val record: MaintenanceRecord = MaintenanceRecord(),
+    val isLoading: Boolean = false,
+    val saveSuccess: Boolean = false,
     val error: String? = null,
-    val saveSuccess: Boolean = false
+    val typeError: String? = null,
+    val dateError: String? = null,
+    val mileageError: String? = null,
+    val costError: String? = null
 )

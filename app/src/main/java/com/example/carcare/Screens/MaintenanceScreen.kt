@@ -1,4 +1,4 @@
-package com.example.carcare.screens
+package com.example.carcare.Screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,8 +19,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,25 +31,23 @@ import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carcare.data.MaintenanceDashboardViewModel
 import com.example.carcare.data.MaintenanceCategory
-import com.example.carcare.data.MaintenanceRecord
-import com.example.carcare.R
-import com.example.carcare.Screens.AccentMagenta
-import com.example.carcare.Screens.CardBackground
-import com.example.carcare.Screens.DeepBlack
-import com.example.carcare.Screens.LightPurple
-import com.example.carcare.Screens.PrimaryPurple
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
-
 import com.example.carcare.ui.components.AnimatedBackground
+import com.example.carcare.ui.components.MaintenanceRecordItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MaintenanceScreen() {
+fun MaintenanceScreen(vehicleId: String) { // Add vehicleId parameter
     val viewModel: MaintenanceDashboardViewModel = viewModel()
     val state by viewModel.state.collectAsState()
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
+
+    // Set vehicle ID when screen is first composed
+    LaunchedEffect(vehicleId) {
+        viewModel.setVehicleId(vehicleId)
+    }
 
     AnimatedBackground(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -58,9 +59,11 @@ fun MaintenanceScreen() {
                         .height(120.dp)
                         .background(
                             Brush.verticalGradient(
-                                0.0f to AccentMagenta.copy(alpha = 0.7f),
-                                0.5f to PrimaryPurple.copy(alpha = 0.7f),
-                                1.0f to DeepBlack.copy(alpha = 0.5f)
+                                colors = listOf(
+                                    AccentMagenta.copy(alpha = 0.7f),
+                                    PrimaryPurple.copy(alpha = 0.7f),
+                                    DeepBlack.copy(alpha = 0.5f)
+                                )
                             )
                         )
                         .padding(horizontal = 24.dp, vertical = 16.dp),
@@ -76,8 +79,7 @@ fun MaintenanceScreen() {
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 tint = Color.White,
-                                modifier = Modifier.size(28.dp)
-                            )
+                                modifier = Modifier.size(28.dp))
                         }
 
                         Text(
@@ -94,7 +96,11 @@ fun MaintenanceScreen() {
             },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { Router.navigateTo(Screen.MaintenanceLogScreen) },
+                    onClick = {
+                        Router.navigateToMaintenanceForm(
+                            vehicleId = vehicleId // Use passed vehicleId
+                        )
+                    },
                     containerColor = PrimaryPurple,
                     contentColor = Color.White,
                     modifier = Modifier
@@ -114,7 +120,12 @@ fun MaintenanceScreen() {
             }
         ) { paddingValues ->
             if (state.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(color = PrimaryPurple)
                 }
             } else {
@@ -131,8 +142,18 @@ fun MaintenanceScreen() {
                                 .padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            StatCard("Upcoming", state.upcomingCount.toString(), Color(0xFFFF9800), screenWidth * 0.4f)
-                            StatCard("Overdue", state.overdueCount.toString(), Color(0xFFF44336), screenWidth * 0.4f)
+                            StatCard(
+                                "Upcoming",
+                                state.upcomingCount.toString(),
+                                Color(0xFFFF9800),
+                                screenWidth * 0.4f
+                            )
+                            StatCard(
+                                "Overdue",
+                                state.overdueCount.toString(),
+                                Color(0xFFF44336),
+                                screenWidth * 0.4f
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -145,9 +166,7 @@ fun MaintenanceScreen() {
                             modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
                         )
 
-                        // FIXED CATEGORY GRID SECTION
-                        // Calculate height needed for 3 rows (6 items)
-                        val gridHeight = (120 * 3 + 16 * 2).dp // Card height * rows + spacing * (rows-1)
+                        val gridHeight = (120 * 3 + 16 * 2).dp
 
                         Box(
                             modifier = Modifier
@@ -159,14 +178,20 @@ fun MaintenanceScreen() {
                                 modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                userScrollEnabled = true // Enable scrolling for this section
+                                userScrollEnabled = true
                             ) {
                                 items(state.categories.size) { index ->
                                     val category = state.categories[index]
-                                    MaintenanceCategoryCard(category) {
-                                        viewModel.selectCategory(category.name)
-                                        Router.navigateTo(Screen.MaintenanceLogScreen)
-                                    }
+                                    MaintenanceCategoryCard(
+                                        category = category,
+                                        onClick = {
+                                            viewModel.selectCategory(category.name)
+                                            Router.navigateToMaintenanceLog(
+                                                vehicleId = vehicleId, // Use passed vehicleId
+                                                category = category.name
+                                            )
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -182,14 +207,21 @@ fun MaintenanceScreen() {
                         )
                     }
 
-                    items(state.recentMaintenance.size) { index ->
-                        val record = state.recentMaintenance[index]
+                    items(state.recentMaintenance) { record ->
                         AnimatedVisibility(
                             visible = true,
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
                         ) {
-                            MaintenanceRecordItem(record)
+                            MaintenanceRecordItem(
+                                record = record,
+                                onClick = {
+                                    Router.navigateToMaintenanceForm(
+                                        vehicleId = vehicleId, // Use passed vehicleId
+                                        recordId = record.id
+                                    )
+                                }
+                            )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -200,7 +232,12 @@ fun MaintenanceScreen() {
 }
 
 @Composable
-fun StatCard(title: String, value: String, color: Color, width: Dp) {
+fun StatCard(
+    title: String,
+    value: String,
+    color: Color,
+    width: Dp
+) {
     Card(
         modifier = Modifier
             .width(width)
@@ -211,21 +248,39 @@ fun StatCard(title: String, value: String, color: Color, width: Dp) {
         border = BorderStroke(
             1.dp,
             Brush.horizontalGradient(
-                colors = listOf(PrimaryPurple.copy(alpha = 0.7f), AccentMagenta.copy(alpha = 0.7f))
+                colors = listOf(
+                    PrimaryPurple.copy(alpha = 0.7f),
+                    AccentMagenta.copy(alpha = 0.7f)
+                )
             )
         )
     ) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = value, color = color, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                Text(text = title, color = LightPurple, fontSize = 16.sp)
+                Text(
+                    text = value,
+                    color = color,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = title,
+                    color = LightPurple,
+                    fontSize = 16.sp
+                )
             }
         }
     }
 }
 
 @Composable
-fun MaintenanceCategoryCard(category: MaintenanceCategory, onClick: () -> Unit) {
+fun MaintenanceCategoryCard(
+    category: MaintenanceCategory,
+    onClick: () -> Unit
+) {
     val alpha by rememberInfiniteTransition().animateFloat(
         initialValue = 0.8f,
         targetValue = 1f,
@@ -238,12 +293,15 @@ fun MaintenanceCategoryCard(category: MaintenanceCategory, onClick: () -> Unit) 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp) // Fixed height for each card
+            .height(120.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        border = BorderStroke(1.dp, Brush.horizontalGradient(listOf(PrimaryPurple, AccentMagenta)))
+        border = BorderStroke(
+            1.dp,
+            Brush.horizontalGradient(listOf(PrimaryPurple, AccentMagenta))
+        )
     ) {
         Box(
             modifier = Modifier
@@ -266,59 +324,12 @@ fun MaintenanceCategoryCard(category: MaintenanceCategory, onClick: () -> Unit) 
                     modifier = Modifier.size(40.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = category.name, color = Color.White, fontWeight = FontWeight.SemiBold)
-            }
-        }
-    }
-}
-
-@Composable
-fun MaintenanceRecordItem(record: MaintenanceRecord) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground),
-        border = BorderStroke(1.dp, PrimaryPurple.copy(alpha = 0.5f))
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(
-                        Brush.radialGradient(colors = listOf(PrimaryPurple, AccentMagenta)),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_wrench),
-                    contentDescription = "Maintenance",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                Text(
+                    text = category.name,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(text = record.type, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = "Mileage: ${record.mileage} km", color = LightPurple, fontSize = 14.sp)
-                Text(text = "Date: ${record.date}", color = LightPurple.copy(alpha = 0.7f), fontSize = 12.sp)
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = "$${"%.2f".format(record.cost)}",
-                color = if (record.cost > 0) LightPurple else Color.Gray,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
         }
     }
 }
@@ -326,5 +337,5 @@ fun MaintenanceRecordItem(record: MaintenanceRecord) {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun MaintenanceScreenPreview() {
-    MaintenanceScreen()
+    MaintenanceScreen(vehicleId = "test_vehicle_id")
 }

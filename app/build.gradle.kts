@@ -58,13 +58,13 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     // Material 3 - use explicit version and only once
-    implementation("androidx.compose.material3:material3:1.1.0")
+    implementation("androidx.compose.material3:material3:1.3.2")
 
     // Material icons (Material 2 icons)
-    implementation("androidx.compose.material:material-icons-extended:1.4.3")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     // ViewModel Compose integration
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
 
     // Testing dependencies
     testImplementation(libs.junit)
@@ -78,8 +78,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // ✅ Firebase dependencies (single BOM version for all)
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-    implementation("com.google.firebase:firebase-auth-ktx:23.2.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
+    implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore-ktx") // ✅ Correctly placed now
 }

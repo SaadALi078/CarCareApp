@@ -44,7 +44,7 @@ Thank you for using CarCare! </string>\
     <string name="go_to_login" translatable="false">Already have an account?Login </string>
     <string name="login" translatable="false">Login</string>
     <string name="forgot_password" translatable="false">Forgot your password </string>
-    <string name="emailerro" translatable="false">Please enter a valid email address. </string>
+    <string name="emailerror" translatable="false">Please enter a valid email address. </string>
     <string name="logout" translatable="false">Logout</string>
 
 

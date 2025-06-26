@@ -1,4 +1,3 @@
-// Data/MaintenanceDashboardViewModel.kt
 package com.example.carcare.data
 
 import androidx.lifecycle.ViewModel
@@ -12,17 +11,24 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MaintenanceDashboardViewModel : ViewModel() {
-
     private val _state = MutableStateFlow(MaintenanceDashboardState())
     val state: StateFlow<MaintenanceDashboardState> = _state.asStateFlow()
 
-    init {
+    // Track the current vehicle ID
+    private var _currentVehicleId: String = ""
+    val currentVehicleId: String get() = _currentVehicleId
+
+    fun setVehicleId(vehicleId: String) {
+        _currentVehicleId = vehicleId
         loadData()
+    }
+
+    init {
+        // Don't load data until vehicle ID is set
     }
 
     private fun loadData() {
         viewModelScope.launch {
-            // Simulate network loading
             _state.update { it.copy(isLoading = true) }
             delay(1200) // Simulate API call
 
@@ -69,7 +75,6 @@ class MaintenanceDashboardViewModel : ViewModel() {
 
     fun selectCategory(category: String) {
         // Save for pre-selection in log screen
-        // Can be stored in shared ViewModel later
     }
 }
 
@@ -83,13 +88,5 @@ data class MaintenanceDashboardState(
 
 data class MaintenanceCategory(
     val name: String,
-    val iconRes: Int // Drawable resource ID
-)
-
-data class MaintenancesRecord(
-    val id: String,
-    val type: String,
-    val date: String,
-    val mileage: Int,
-    val cost: Double
+    val iconRes: Int
 )

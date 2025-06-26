@@ -42,7 +42,7 @@ fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
         contentAlignment = Alignment.Center) {
 
         Image(
-            painter = painterResource(id = R.drawable.bg2),
+            painter = painterResource(id = R.drawable.bgsignup),
             contentDescription = "Background Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -63,7 +63,7 @@ fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
 
                 MyTextField(
                     labelValue = stringResource(id = R.string.firstname),
-                    painterResources = painterResource(id = R.drawable.profileicon),
+                    painterResources = painterResource(id = R.drawable.ic_profile),
                     onTextSelected = {
                         loginViewModel.onEvent(SingupUIEvent.FisrtNameChange(it))
                     },
@@ -72,7 +72,7 @@ fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
                 Spacer(modifier = Modifier.height(0.dp))
                 MyTextField(
                     labelValue = stringResource(id = R.string.lastname),
-                    painterResources = painterResource(id = R.drawable.profileicon),
+                    painterResources = painterResource(id = R.drawable.ic_profile),
                     onTextSelected = {
                         loginViewModel.onEvent(SingupUIEvent.LastNameChange(it))
                     },
@@ -81,8 +81,8 @@ fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
                 Spacer(modifier = Modifier.height(0.dp))
                 MyTextField(
                     labelValue = stringResource(id = R.string.email),
-                    errorMessage = stringResource(id = R.string.emailerro),
-                    painterResources = painterResource(id = R.drawable.email),
+                    errorMessage = stringResource(id = R.string.emailerror),
+                    painterResources = painterResource(id = R.drawable.ic_email),
                     onTextSelected = {
                         loginViewModel.onEvent(SingupUIEvent.EmailChange(it))
 
@@ -94,7 +94,7 @@ fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
                 Spacer(modifier = Modifier.height(0.dp))
                 passwordTextField(
                     labelValue = stringResource(id = R.string.password),
-                    painterResources = painterResource(id = R.drawable.passwordicon),
+                    painterResources = painterResource(id = R.drawable.ic_password),
                     onTextSelected = {
                         loginViewModel.onEvent(SingupUIEvent.PasswordChange(it))
                         Log.d(
@@ -108,7 +108,7 @@ fun SignupScreen(loginViewModel: SignupViewModel= viewModel()) {
                 CheckboxComponent(
                     value = stringResource(id = R.string.terms_and_Conditions),
                     onTextSelected = {
-                        Router.navigateTo(Screen.TermsAndCondtionsScreen)
+                        Router.navigateTo(Screen.TermsAndConditionsScreen)
                     },
                     onCheckedChange = {
                         loginViewModel.onEvent(SingupUIEvent.PrivacyPolicyCheckBoxClicked(it))

@@ -1,4 +1,4 @@
-package com.example.carcare.screens
+package com.example.carcare.Screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -54,7 +54,7 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Background Image
         Image(
-            painter = painterResource(id = R.drawable.bg),
+            painter = painterResource(id = android.R.drawable.ic_menu_camera), // ✅ built-in Android icon
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -73,8 +73,8 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
                 // Email Input
                 MyTextField(
                     labelValue = stringResource(id = R.string.email),
-                    painterResource(id = R.drawable.email),
-                    errorMessage = stringResource(id = R.string.emailerro),
+                    painterResource(id = R.drawable.ic_email),
+                    errorMessage = stringResource(id = R.string.emailerror),
                     onTextSelected = {
                         loginViewModel.onEvent(LoginUIEvent.EmailChange(it))
                     },
@@ -86,7 +86,7 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
                 // Password Input
                 passwordTextField(
                     labelValue = stringResource(id = R.string.password),
-                    painterResource(id = R.drawable.passwordicon),
+                    painterResource(id = R.drawable.ic_password),
                     onTextSelected = {
                         loginViewModel.onEvent(LoginUIEvent.PasswordChange(it))
                     },
