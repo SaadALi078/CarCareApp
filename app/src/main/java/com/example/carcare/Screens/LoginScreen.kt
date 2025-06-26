@@ -54,7 +54,7 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Background Image
         Image(
-            painter = painterResource(id = android.R.drawable.ic_menu_camera), // ✅ built-in Android icon
+            painter = painterResource(id =R.drawable.bglogin), // ✅ built-in Android icon
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
