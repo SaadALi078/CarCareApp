@@ -88,7 +88,6 @@ object Router {
         }
     }
 
-
     fun clearBackStack() {
         backStack.clear()
     }
