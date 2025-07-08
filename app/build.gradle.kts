@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("com.google.dagger.hilt.android") version "2.51.1"
+
+    id("org.jetbrains.kotlin.kapt") // ✅ Required for Hilt
 }
 
 android {
@@ -44,42 +47,47 @@ android {
 }
 
 dependencies {
-    // Core dependencies
+    // Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
 
-    // Compose BOM - manages Compose versions
+    // Compose BOM
     implementation(platform(libs.androidx.compose.bom))
 
-    // Compose UI libraries
+    // Compose UI
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation("androidx.compose.foundation:foundation:1.5.0") // for animateItemPlacement
 
-    // Material 3 - use explicit version and only once
+    // Material Design
     implementation("androidx.compose.material3:material3:1.3.2")
-
-    // Material icons (Material 2 icons)
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
-    // ViewModel Compose integration
+    // ViewModel + Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
 
-    // Testing dependencies
+    // Firebase (BOM manages versions)
+    implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // Hilt (DI)
+
+
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-compiler:2.51.1")
+
+    // Debug Tools
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-
-    // Debugging tools for Compose
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-
-    // ✅ Firebase dependencies (single BOM version for all)
-    implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
-    implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-firestore-ktx") // ✅ Correctly placed now
 }

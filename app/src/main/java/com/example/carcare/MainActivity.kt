@@ -15,7 +15,9 @@ import com.example.carcare.Screens.SignupScreen
 import com.example.carcare.app.CarCareApp
 
 import com.example.carcare.ui.theme.CarCareTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

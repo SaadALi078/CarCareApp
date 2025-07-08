@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carcare.data.repository.VehicleRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -39,13 +40,15 @@ class VehiclesViewModel : ViewModel() {
 
     fun addVehicle(vehicle: Vehicle) {
         viewModelScope.launch {
-            val newVehicle = vehicle.copy(
-                id = vehicle.id.ifBlank { System.currentTimeMillis().toString() }
-            )
-            repository.addVehicle(newVehicle)
-            loadVehicles()
+            try {
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
+                val updatedVehicle = vehicle.copy(userId = currentUserId)
+                repository.addVehicle(updatedVehicle)
+                loadVehicles()
+            } catch (_: Exception) {}
         }
     }
+
 
 
 
