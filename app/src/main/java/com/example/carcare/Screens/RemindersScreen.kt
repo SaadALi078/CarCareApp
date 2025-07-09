@@ -38,7 +38,7 @@ import com.example.carcare.viewmodels.ReminderViewModel
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RemindersScreen(
-    viewModel: ReminderViewModel = hiltViewModel() // ✅ Correct hiltViewModel usage
+    viewModel: ReminderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val showAddDialog by viewModel.showAddDialog.collectAsState()
@@ -56,14 +56,25 @@ fun RemindersScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text("Maintenance Reminders", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Maintenance Reminders",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     },
                     navigationIcon = {
                         IconButton(onClick = { Router.navigateTo(Screen.HomeScreen) }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = DeepBlack.copy(alpha = 0.7f))
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = DeepBlack.copy(alpha = 0.7f)
+                    )
                 )
             },
             floatingActionButton = {
@@ -71,7 +82,9 @@ fun RemindersScreen(
                     onClick = { viewModel.showAddReminderDialog() },
                     containerColor = PrimaryPurple,
                     contentColor = Color.White,
-                    modifier = Modifier.size(60.dp).shadow(12.dp, shape = CircleShape)
+                    modifier = Modifier
+                        .size(60.dp)
+                        .shadow(12.dp, shape = CircleShape)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Reminder", modifier = Modifier.size(30.dp))
                 }
@@ -92,7 +105,10 @@ fun RemindersScreen(
                 state.error?.let { errorMsg ->
                     AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
                         Box(
-                            modifier = Modifier.fillMaxWidth().background(DeepBlack.copy(alpha = 0.8f)).padding(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(DeepBlack.copy(alpha = 0.8f))
+                                .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(errorMsg, color = Color.Red, fontSize = 16.sp)
@@ -103,37 +119,45 @@ fun RemindersScreen(
         }
     }
 
-    if (showAddDialog && currentReminder != null) {
-        AddReminderDialog(
-            reminder = currentReminder,
-            onDismiss = viewModel::hideAddDialog,
-            onSave = {
-                viewModel.saveReminder(
-                    userId = userId,
-                    vehicleId = currentReminder.vehicleId,
-                    vehicleName = currentReminder.vehicleName
-                )
-            },
-            onReminderChange = viewModel::setCurrentReminder
-        )
+    // ✅ Null-safe access for currentReminder
+    if (showAddDialog) {
+        currentReminder?.let { reminder ->
+            AddReminderDialog(
+                reminder = reminder,
+                onDismiss = viewModel::hideAddDialog,
+                onSave = {
+                    viewModel.saveReminder(
+                        userId = userId,
+                        vehicleId = reminder.vehicleId,
+                        vehicleName = reminder.vehicleName
+                    )
+                },
+                onReminderChange = viewModel::setCurrentReminder
+            )
+        }
     }
 
-    if (showDeleteDialog && currentReminder != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::hideDeleteDialog,
-            title = { Text("Delete Reminder") },
-            text = { Text("Are you sure you want to delete this reminder?") },
-            confirmButton = {
-                Button(onClick = viewModel::deleteReminder, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))) {
-                    Text("Delete", color = Color.White)
+    if (showDeleteDialog) {
+        currentReminder?.let { reminder ->
+            AlertDialog(
+                onDismissRequest = viewModel::hideDeleteDialog,
+                title = { Text("Delete Reminder") },
+                text = { Text("Are you sure you want to delete this reminder?") },
+                confirmButton = {
+                    Button(
+                        onClick = viewModel::deleteReminder,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                    ) {
+                        Text("Delete", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = viewModel::hideDeleteDialog) {
+                        Text("Cancel", color = PrimaryPurple)
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::hideDeleteDialog) {
-                    Text("Cancel", color = PrimaryPurple)
-                }
-            }
-        )
+            )
+        }
     }
 }
 

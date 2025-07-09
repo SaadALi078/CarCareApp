@@ -1,24 +1,21 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
-        mavenCentral()
         gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+    plugins {
+        id("com.google.dagger.hilt.android") version "2.56"
+        id("com.google.gms.google-services") version "4.4.1"
     }
 }
+
 dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        gradlePluginPortal()
     }
 }
-
 
 
 rootProject.name = "Car Care"
