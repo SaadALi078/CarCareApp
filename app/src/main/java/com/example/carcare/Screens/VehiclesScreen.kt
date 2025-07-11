@@ -29,8 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +41,7 @@ import com.example.carcare.ui.components.AnimatedBackground
 import com.example.carcare.ui.components.EmptyState
 import com.example.carcare.ui.components.VehicleCard
 import com.example.carcare.ui.components.AddEditVehicleDialog
+import com.example.carcare.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -77,7 +76,7 @@ fun VehiclesScreen() {
                         }
                     },
                     actions = {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { /* Handle settings */ }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "More",
@@ -86,14 +85,14 @@ fun VehiclesScreen() {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF060606).copy(alpha = 0.7f)
+                        containerColor = DeepBlack.copy(alpha = 0.7f)
                     )
                 )
             },
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { viewModel.showAddVehicleDialog = true },
-                    containerColor = Color(0xFFC451C9),
+                    containerColor = PrimaryPurple,
                     contentColor = Color.White,
                     modifier = Modifier
                         .size(60.dp)
@@ -118,7 +117,7 @@ fun VehiclesScreen() {
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Color(0xFFC451C9))
+                            CircularProgressIndicator(color = PrimaryPurple)
                         }
                     }
 
@@ -147,7 +146,7 @@ fun VehiclesScreen() {
                                 VehicleCard(
                                     vehicle = vehicle,
                                     onClick = {
-                                        Router.navigateToMaintenance(vehicle.id)
+                                        Router.navigateTo(Screen.MaintenanceScreenWithVehicle(vehicle.id))
                                     },
                                     onEdit = { viewModel.startEditing(vehicle) },
                                     onDelete = { viewModel.deleteVehicle(vehicle.id) }

@@ -34,6 +34,7 @@ import com.example.carcare.navigation.Screen
 import com.example.carcare.ui.components.AnimatedBackground
 import com.example.carcare.ui.theme.*
 import com.example.carcare.viewmodels.ReminderViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -44,10 +45,12 @@ fun RemindersScreen(
     val showAddDialog by viewModel.showAddDialog.collectAsState()
     val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
     val currentReminder by viewModel.currentReminder.collectAsState()
-    val userId = "current_user_id" // Replace with FirebaseAuth.getInstance().currentUser?.uid
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-    LaunchedEffect(Unit) {
-        viewModel.loadReminders(userId)
+    LaunchedEffect(userId) {
+        if (userId.isNotBlank()) {
+            viewModel.loadReminders(userId)
+        }
     }
 
     AnimatedBackground(modifier = Modifier.fillMaxSize()) {
@@ -119,7 +122,6 @@ fun RemindersScreen(
         }
     }
 
-    // ✅ Null-safe access for currentReminder
     if (showAddDialog) {
         currentReminder?.let { reminder ->
             AddReminderDialog(
@@ -175,11 +177,27 @@ fun EmptyRemindersState(onAddReminder: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(Icons.Default.Notifications, contentDescription = "No Reminders", tint = PrimaryPurple, modifier = Modifier.size(64.dp))
+        Icon(
+            Icons.Default.Notifications,
+            contentDescription = "No Reminders",
+            tint = PrimaryPurple,
+            modifier = Modifier.size(64.dp)
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        Text("No active reminders", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        Text(
+            "No active reminders",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onAddReminder) {
+        Button(
+            onClick = onAddReminder,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PrimaryPurple,
+                contentColor = Color.White
+            )
+        ) {
             Text("Add Reminder")
         }
     }
@@ -204,16 +222,35 @@ fun RemindersList(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBackground)
+                colors = CardDefaults.cardColors(containerColor = CardBackground),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(reminder.vehicleName, color = Color.White, fontWeight = FontWeight.Bold)
                     Text(reminder.type, color = LightPurple)
                     Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button(onClick = { onMarkComplete(reminder) }) { Text("Done") }
-                        Button(onClick = { onEdit(reminder) }) { Text("Edit") }
-                        Button(onClick = { onDelete(reminder) }) { Text("Delete") }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { onMarkComplete(reminder) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                        ) {
+                            Text("Done")
+                        }
+                        Button(
+                            onClick = { onEdit(reminder) },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
+                        ) {
+                            Text("Edit")
+                        }
+                        Button(
+                            onClick = { onDelete(reminder) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                        ) {
+                            Text("Delete")
+                        }
                     }
                 }
             }
@@ -236,31 +273,37 @@ fun AddReminderDialog(
                 OutlinedTextField(
                     value = reminder.type,
                     onValueChange = { onReminderChange(reminder.copy(type = it)) },
-                    label = { Text("Type") }
+                    label = { Text("Type*") },
+                    modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = reminder.vehicleName,
                     onValueChange = { onReminderChange(reminder.copy(vehicleName = it)) },
-                    label = { Text("Vehicle Name") }
+                    label = { Text("Vehicle Name*") },
+                    modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = reminder.odometerThreshold.toString(),
                     onValueChange = {
                         onReminderChange(reminder.copy(odometerThreshold = it.toIntOrNull() ?: 0))
                     },
-                    label = { Text("Odometer") },
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                    label = { Text("Odometer Threshold (km)*") },
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         },
         confirmButton = {
-            Button(onClick = onSave) {
+            Button(
+                onClick = onSave,
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
+            ) {
                 Text("Save")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", color = PrimaryPurple)
             }
         }
     )

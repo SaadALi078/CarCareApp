@@ -36,12 +36,10 @@ fun MaintenanceFormScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
-    // Load record if editing
     LaunchedEffect(recordId) {
         recordId?.let { viewModel.loadRecord(it) }
     }
 
-    // Handle save success
     LaunchedEffect(state.saveSuccess) {
         if (state.saveSuccess) {
             Router.navigateBack()
@@ -67,22 +65,21 @@ fun MaintenanceFormScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryPurple
+                    containerColor = Color(0xFFC451C9)
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { viewModel.validateAndSave(vehicleId) },
-                containerColor = AccentMagenta,
+                containerColor = Color(0xFFA9016D),
                 contentColor = Color.White,
                 modifier = Modifier.padding(bottom = 16.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_save),
                     contentDescription = "Save Record",
-                    modifier = Modifier.size(24.dp)
-                )
+                    modifier = Modifier.size(24.dp))
             }
         }
     ) { paddingValues ->
@@ -93,7 +90,7 @@ fun MaintenanceFormScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = PrimaryPurple)
+                CircularProgressIndicator(color = Color(0xFFC451C9))
             }
         } else {
             MaintenanceFormContent(
@@ -133,7 +130,6 @@ private fun MaintenanceFormContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Maintenance Type Field
         OutlinedTextField(
             value = record.type,
             onValueChange = { onFieldChange(record.copy(type = it)) },
@@ -148,7 +144,6 @@ private fun MaintenanceFormContent(
             singleLine = true
         )
 
-        // Date Field with Picker
         OutlinedTextField(
             value = record.date,
             onValueChange = { },
@@ -173,7 +168,6 @@ private fun MaintenanceFormContent(
                 .clickable { showDatePicker = true }
         )
 
-        // Mileage Field
         OutlinedTextField(
             value = if (record.mileage > 0) record.mileage.toString() else "",
             onValueChange = {
@@ -194,7 +188,6 @@ private fun MaintenanceFormContent(
             singleLine = true
         )
 
-        // Cost Field
         OutlinedTextField(
             value = if (record.cost > 0) "%.2f".format(record.cost) else "",
             onValueChange = {
@@ -217,7 +210,6 @@ private fun MaintenanceFormContent(
             singleLine = true
         )
 
-        // Notes Field
         OutlinedTextField(
             value = record.notes,
             onValueChange = { onFieldChange(record.copy(notes = it)) },
@@ -228,7 +220,6 @@ private fun MaintenanceFormContent(
             maxLines = 4
         )
 
-        // General error message
         error?.let {
             Text(
                 text = it,
@@ -238,7 +229,6 @@ private fun MaintenanceFormContent(
         }
     }
 
-    // Date Picker Dialog
     if (showDatePicker) {
         showDatePickerDialog(
             context = context,

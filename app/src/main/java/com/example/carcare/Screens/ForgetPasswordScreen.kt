@@ -20,17 +20,14 @@ import com.example.carcare.navigation.Screen
 
 @Composable
 fun ForgetPasswordScreen(
-    onNavigateBack: () -> Unit = {}, // Optional
+    onNavigateBack: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val viewModel: ForgetPasswordViewModel = viewModel()
-
     var email by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
-
     val primaryColor = Color(0xFFBF0D81)
 
-    // Handle physical back button
     BackHandler {
         Router.navigateTo(Screen.LoginScreen)
     }
@@ -41,7 +38,6 @@ fun ForgetPasswordScreen(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        // 🔙 Back button in top-right
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,7 +55,6 @@ fun ForgetPasswordScreen(
             )
         }
 
-        // 🔽 Main content center aligned
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,7 +62,6 @@ fun ForgetPasswordScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 🟣 Title
             Text(
                 text = "Forgot Password",
                 color = primaryColor,
@@ -76,7 +70,6 @@ fun ForgetPasswordScreen(
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // 📧 Email input
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -88,16 +81,19 @@ fun ForgetPasswordScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 📤 Button to send reset email
             Button(
                 onClick = {
-                    isLoading = true
-                    viewModel.sendPasswordResetEmail(email) { success, message ->
-                        isLoading = false
-                        Toast.makeText(context, message ?: "", Toast.LENGTH_LONG).show()
-                        if (success) {
-                            Router.navigateTo(Screen.LoginScreen)
+                    if (email.isNotBlank()) {
+                        isLoading = true
+                        viewModel.sendPasswordResetEmail(email) { success, message ->
+                            isLoading = false
+                            Toast.makeText(context, message ?: "", Toast.LENGTH_LONG).show()
+                            if (success) {
+                                Router.navigateTo(Screen.LoginScreen)
+                            }
                         }
+                    } else {
+                        Toast.makeText(context, "Email cannot be empty", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

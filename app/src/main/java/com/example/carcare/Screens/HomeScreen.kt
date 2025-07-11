@@ -10,7 +10,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalConfiguration
@@ -18,7 +18,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carcare.R
+import com.example.carcare.data.VehiclesViewModel
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
 
@@ -157,10 +159,8 @@ fun ModernBottomBar() {
             .padding(vertical = 8.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // Container for the tab content
         Row(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -181,7 +181,6 @@ fun ModernBottomBar() {
                             Router.navigateTo(screen)
                         }
                 ) {
-                    // Animated icon container
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -219,7 +218,6 @@ fun ModernBottomBar() {
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // Animated label
                     Text(
                         text = label,
                         color = if (isSelected) PrimaryPurple else LightPurple,
@@ -233,7 +231,6 @@ fun ModernBottomBar() {
                             }
                     )
 
-                    // Animated indicator bar - placed under each tab
                     if (isSelected) {
                         Box(
                             modifier = Modifier
@@ -248,7 +245,6 @@ fun ModernBottomBar() {
                                 )
                         )
                     } else {
-                        // Invisible placeholder to maintain layout consistency
                         Spacer(modifier = Modifier
                             .padding(top = 4.dp)
                             .width(60.dp)
@@ -265,6 +261,12 @@ fun ModernBottomBar() {
 fun HomeScreen() {
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
+    val vehiclesViewModel: VehiclesViewModel = viewModel()
+    val state by vehiclesViewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        vehiclesViewModel.loadVehicles()
+    }
 
     val items = listOf(
         DashboardItem("Emergency Help", R.drawable.ic_emergency, null),
