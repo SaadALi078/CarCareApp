@@ -3,28 +3,26 @@ package com.example.carcare.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carcare.data.MaintenanceRecord
-import com.example.carcare.data.MaintenanceRepository
+import com.example.carcare.data.repository.MaintenanceRepository
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MaintenanceLogViewModel : ViewModel() {
+class MaintenanceLogViewModel(
+    private val repository: MaintenanceRepository,
+    private val vehicleId: String
+) : ViewModel() {
     private val _state = MutableStateFlow(MaintenanceLogState())
     val state: StateFlow<MaintenanceLogState> = _state.asStateFlow()
-
-    private val repository = MaintenanceRepository() // Make sure to implement this
 
     fun loadRecords(category: String? = null) {
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             try {
-                val records = if (category != null) {
-                    repository.getRecordsByCategory(category)
-                } else {
-                    repository.getAllRecords()
-                }
+                val records = repository.getRecordsByVehicleAndCategory(vehicleId, category)
 
                 _state.update {
                     it.copy(

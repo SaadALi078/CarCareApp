@@ -6,12 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CarRepair
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.example.carcare.data.Vehicle
+import com.example.carcare.data.repository.MaintenanceRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +36,20 @@ fun VehicleCard(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    // State for maintenance count
+    val maintenanceCount = remember { mutableStateOf(0) }
+
+    // Load maintenance count
+    LaunchedEffect(vehicle.id) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val count = MaintenanceRepository().getMaintenanceCount(vehicle.id)
+
+
+
+
+            maintenanceCount.value = count
+        }
+    }
 
     Card(
         modifier = modifier
@@ -129,7 +143,7 @@ fun VehicleCard(
                 VehicleStatItem(
                     icon = Icons.Default.CarRepair,
                     label = "Maintenance",
-                    value = "${vehicle.maintenanceCount}",
+                    value = "${maintenanceCount.value}",
                     onClick = onClick
                 )
 

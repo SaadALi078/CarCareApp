@@ -1,5 +1,7 @@
-package com.example.carcare.data
+package com.example.carcare.data.repository
 
+import com.example.carcare.data.MaintenanceRecord
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -8,65 +10,88 @@ import javax.inject.Singleton
 
 @Singleton
 class MaintenanceRepository @Inject constructor() {
+
     private val db = Firebase.firestore
     private val collection = db.collection("maintenance_records")
 
-    suspend fun getAllRecords(): List<MaintenanceRecord> {
+    // ✅ Get count of maintenance records for a vehicle
+    suspend fun getMaintenanceCount(vehicleId: String): Int {
         return try {
-            collection.get().await().documents.mapNotNull { doc ->
-                doc.toObject(MaintenanceRecord::class.java)?.copy(id = doc.id)
-            }
+            collection
+                .whereEqualTo("vehicleId", vehicleId)
+                .get()
+                .await()
+                .size()
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    // ✅ Get recent N maintenance records for a vehicle
+    suspend fun getRecentMaintenance(vehicleId: String, limit: Int): List<MaintenanceRecord> {
+        return try {
+            collection
+                .whereEqualTo("vehicleId", vehicleId)
+                .orderBy("date", Query.Direction.DESCENDING)
+                .limit(limit.toLong())
+                .get()
+                .await()
+                .documents
+                .mapNotNull { doc ->
+                    doc.toObject(MaintenanceRecord::class.java)?.copy(id = doc.id)
+                }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    suspend fun getRecordsByCategory(category: String?): List<MaintenanceRecord> {
+    // ✅ Get records by vehicleId and optional category (type)
+    suspend fun getRecordsByVehicleAndCategory(
+        vehicleId: String,
+        category: String?
+    ): List<MaintenanceRecord> {
         return try {
-            val query = category?.let {
-                collection.whereEqualTo("type", it) // Changed from "category" to "type" to match your record structure
-            } ?: collection
-
-            query.get().await().documents.mapNotNull { doc ->
-                doc.toObject(MaintenanceRecord::class.java)?.copy(id = doc.id)
+            var query = collection.whereEqualTo("vehicleId", vehicleId)
+            category?.let {
+                query = query.whereEqualTo("type", it)
             }
+            query.get().await()
+                .documents
+                .mapNotNull { doc ->
+                    doc.toObject(MaintenanceRecord::class.java)?.copy(id = doc.id)
+                }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
+    // ✅ Get a single record by ID
     suspend fun getRecord(recordId: String): MaintenanceRecord? {
         return try {
-            collection.document(recordId).get().await()
-                .toObject(MaintenanceRecord::class.java)?.copy(id = recordId)
+            val doc = collection.document(recordId).get().await()
+            doc.toObject(MaintenanceRecord::class.java)?.copy(id = doc.id)
         } catch (e: Exception) {
             null
         }
     }
 
+    // ✅ Add a new maintenance record
     suspend fun addRecord(record: MaintenanceRecord): String {
         return try {
             val docRef = collection.add(record).await()
             docRef.id
         } catch (e: Exception) {
-            throw Exception("Failed to add record: ${e.message}")
+            throw e
         }
     }
 
+    // ✅ Update an existing maintenance record
     suspend fun updateRecord(record: MaintenanceRecord) {
+        if (record.id.isBlank()) return
         try {
-            require(record.id.isNotEmpty()) { "Record ID must not be empty for update" }
             collection.document(record.id).set(record).await()
         } catch (e: Exception) {
-            throw Exception("Failed to update record: ${e.message}")
-        }
-    }
-
-    suspend fun deleteRecord(recordId: String) {
-        try {
-            collection.document(recordId).delete().await()
-        } catch (e: Exception) {
-            throw Exception("Failed to delete record: ${e.message}")
+            throw e
         }
     }
 }

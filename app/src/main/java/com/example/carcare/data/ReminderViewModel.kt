@@ -4,8 +4,9 @@ package com.example.carcare.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carcare.data.Reminder
-import com.example.carcare.data.ReminderRepository
+
 import com.example.carcare.data.ReminderStatus
+import com.example.carcare.data.repository.ReminderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

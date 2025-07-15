@@ -1,115 +1,130 @@
 package com.example.carcare.Screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.*
+import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.carcare.R
 import com.example.carcare.data.MaintenanceDashboardViewModel
 import com.example.carcare.data.MaintenanceCategory
 import com.example.carcare.navigation.Router
 import com.example.carcare.navigation.Screen
 import com.example.carcare.ui.components.AnimatedBackground
+import com.example.carcare.ui.components.EmptyState
 import com.example.carcare.ui.components.MaintenanceRecordItem
+import com.example.carcare.ui.theme.*
+import com.example.carcare.data.VehiclesViewModel
+import com.example.carcare.data.Vehicle
+import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun MaintenanceScreen(vehicleId: String) { // Add vehicleId parameter
+fun MaintenanceScreen(vehicleId: String) {
+    val context = LocalContext.current
     val viewModel: MaintenanceDashboardViewModel = viewModel()
+    val vehiclesViewModel: VehiclesViewModel = viewModel()
     val state by viewModel.state.collectAsState()
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
+    val vehicleState by vehiclesViewModel.state.collectAsState()
 
-    // Set vehicle ID when screen is first composed
-    LaunchedEffect(vehicleId) {
-        viewModel.setVehicleId(vehicleId)
+    // Handle no vehicle selected
+    if (vehicleId.isBlank()) {
+        LaunchedEffect(Unit) {
+            Toast.makeText(context, "Please select a vehicle first", Toast.LENGTH_SHORT).show()
+            Router.navigateTo(Screen.VehiclesScreen)
+        }
+        return
+    }
+
+    // Get current vehicle
+    val currentVehicle = remember(vehicleId) {
+        vehicleState.vehicles.find { it.id == vehicleId }
+    }
+
+    // If vehicle not found after loading
+    if (!vehicleState.isLoading && currentVehicle == null) {
+        LaunchedEffect(Unit) {
+            Toast.makeText(context, "Vehicle not found", Toast.LENGTH_SHORT).show()
+            Router.navigateTo(Screen.VehiclesScreen)
+        }
+        return Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Vehicle not found. Redirecting...", color = Color.White)
+        }
+    }
+
+    // Set vehicle when available
+    LaunchedEffect(currentVehicle) {
+        currentVehicle?.let { viewModel.setVehicle(it) }
     }
 
     AnimatedBackground(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    AccentMagenta.copy(alpha = 0.7f),
-                                    PrimaryPurple.copy(alpha = 0.7f),
-                                    DeepBlack.copy(alpha = 0.5f)
-                                )
-                            )
+                TopAppBar(
+                    title = {
+                        Text(
+                            "${currentVehicle?.name ?: "Vehicle"} Maintenance",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
                         )
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+                    },
+                    navigationIcon = {
                         IconButton(onClick = { Router.navigateTo(Screen.HomeScreen) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 tint = Color.White,
-                                modifier = Modifier.size(28.dp))
+                                modifier = Modifier.size(28.dp)
+                            )
                         }
-
-                        Text(
-                            text = "Maintenance Hub",
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.5.sp
-                        )
-
-                        Spacer(modifier = Modifier.width(48.dp))
-                    }
-                }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = DeepBlack.copy(alpha = 0.7f)
+                    )
+                )
             },
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
                         Router.navigateToMaintenanceForm(
-                            vehicleId = vehicleId // Use passed vehicleId
+                            vehicleId = vehicleId
                         )
                     },
                     containerColor = PrimaryPurple,
                     contentColor = Color.White,
                     modifier = Modifier
                         .size(60.dp)
-                        .border(
-                            width = 2.dp,
-                            brush = Brush.linearGradient(colors = listOf(PrimaryPurple, AccentMagenta)),
-                            shape = CircleShape
-                        )
+                        .shadow(8.dp, shape = CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -127,6 +142,15 @@ fun MaintenanceScreen(vehicleId: String) { // Add vehicleId parameter
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = PrimaryPurple)
+                }
+            } else if (currentVehicle == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Loading vehicle...", color = Color.White)
                 }
             } else {
                 LazyColumn(
@@ -146,14 +170,14 @@ fun MaintenanceScreen(vehicleId: String) { // Add vehicleId parameter
                                 "Upcoming",
                                 state.upcomingCount.toString(),
                                 Color(0xFFFF9800),
-                                screenWidth * 0.4f
+                                modifier = Modifier.weight(1f)
                             )
+                            Spacer(Modifier.width(16.dp))
                             StatCard(
                                 "Overdue",
                                 state.overdueCount.toString(),
                                 Color(0xFFF44336),
-                                screenWidth * 0.4f
-                            )
+                                modifier = Modifier.weight(1f))
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -166,33 +190,26 @@ fun MaintenanceScreen(vehicleId: String) { // Add vehicleId parameter
                             modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
                         )
 
-                        val gridHeight = (120 * 3 + 16 * 2).dp
-
-                        Box(
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
                             modifier = Modifier
-                                .height(gridHeight)
-                                .padding(horizontal = 16.dp)
+                                .height(300.dp)
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(2),
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                userScrollEnabled = true
-                            ) {
-                                items(state.categories.size) { index ->
-                                    val category = state.categories[index]
-                                    MaintenanceCategoryCard(
-                                        category = category,
-                                        onClick = {
-                                            viewModel.selectCategory(category.name)
-                                            Router.navigateToMaintenanceLog(
-                                                vehicleId = vehicleId, // Use passed vehicleId
-                                                category = category.name
-                                            )
-                                        }
-                                    )
-                                }
+                            items(state.categories.size) { index ->
+                                val category = state.categories[index]
+                                MaintenanceCategoryCard(
+                                    category = category,
+                                    onClick = {
+                                        viewModel.selectCategory(category.name)
+                                        Router.navigateToMaintenanceLog(
+                                            vehicleId = vehicleId,
+                                            category = category.name
+                                        )
+                                    }
+                                )
                             }
                         }
 
@@ -210,14 +227,13 @@ fun MaintenanceScreen(vehicleId: String) { // Add vehicleId parameter
                     items(state.recentMaintenance) { record ->
                         AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn() + expandVertically(),
-                            exit = fadeOut() + shrinkVertically()
+                            enter = fadeIn() + expandVertically()
                         ) {
                             MaintenanceRecordItem(
                                 record = record,
                                 onClick = {
                                     Router.navigateToMaintenanceForm(
-                                        vehicleId = vehicleId, // Use passed vehicleId
+                                        vehicleId = vehicleId,
                                         recordId = record.id
                                     )
                                 }
@@ -236,16 +252,16 @@ fun StatCard(
     title: String,
     value: String,
     color: Color,
-    width: Dp
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
-            .width(width)
+        modifier = modifier
             .height(100.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        border = BorderStroke(
+        border =
+            BorderStroke(
             1.dp,
             Brush.horizontalGradient(
                 colors = listOf(
@@ -332,10 +348,4 @@ fun MaintenanceCategoryCard(
             }
         }
     }
-}
-
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-fun MaintenanceScreenPreview() {
-    MaintenanceScreen(vehicleId = "test_vehicle_id")
 }

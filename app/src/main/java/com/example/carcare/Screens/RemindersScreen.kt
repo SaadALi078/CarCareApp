@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,6 +36,8 @@ import com.example.carcare.ui.components.AnimatedBackground
 import com.example.carcare.ui.theme.*
 import com.example.carcare.viewmodels.ReminderViewModel
 import com.google.firebase.auth.FirebaseAuth
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -120,45 +123,45 @@ fun RemindersScreen(
                 }
             }
         }
-    }
 
-    if (showAddDialog) {
-        currentReminder?.let { reminder ->
-            AddReminderDialog(
-                reminder = reminder,
-                onDismiss = viewModel::hideAddDialog,
-                onSave = {
-                    viewModel.saveReminder(
-                        userId = userId,
-                        vehicleId = reminder.vehicleId,
-                        vehicleName = reminder.vehicleName
-                    )
-                },
-                onReminderChange = viewModel::setCurrentReminder
-            )
+        if (showAddDialog) {
+            currentReminder?.let { reminder ->
+                AddReminderDialog(
+                    reminder = reminder,
+                    onDismiss = viewModel::hideAddDialog,
+                    onSave = {
+                        viewModel.saveReminder(
+                            userId = userId,
+                            vehicleId = reminder.vehicleId,
+                            vehicleName = reminder.vehicleName
+                        )
+                    },
+                    onReminderChange = viewModel::setCurrentReminder
+                )
+            }
         }
-    }
 
-    if (showDeleteDialog) {
-        currentReminder?.let { reminder ->
-            AlertDialog(
-                onDismissRequest = viewModel::hideDeleteDialog,
-                title = { Text("Delete Reminder") },
-                text = { Text("Are you sure you want to delete this reminder?") },
-                confirmButton = {
-                    Button(
-                        onClick = viewModel::deleteReminder,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
-                    ) {
-                        Text("Delete", color = Color.White)
+        if (showDeleteDialog) {
+            currentReminder?.let { reminder ->
+                AlertDialog(
+                    onDismissRequest = viewModel::hideDeleteDialog,
+                    title = { Text("Delete Reminder") },
+                    text = { Text("Are you sure you want to delete this reminder?") },
+                    confirmButton = {
+                        Button(
+                            onClick = viewModel::deleteReminder,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                        ) {
+                            Text("Delete", color = Color.White)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = viewModel::hideDeleteDialog) {
+                            Text("Cancel", color = PrimaryPurple)
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = viewModel::hideDeleteDialog) {
-                        Text("Cancel", color = PrimaryPurple)
-                    }
-                }
-            )
+                )
+            }
         }
     }
 }
@@ -212,6 +215,7 @@ fun RemindersList(
     onDelete: (Reminder) -> Unit
 ) {
     val listState = rememberLazyListState()
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
     LazyColumn(
         state = listState,
@@ -228,6 +232,7 @@ fun RemindersList(
                 Column(Modifier.padding(16.dp)) {
                     Text(reminder.vehicleName, color = Color.White, fontWeight = FontWeight.Bold)
                     Text(reminder.type, color = LightPurple)
+                    Text("Due: ${dateFormat.format(reminder.dueDate.toDate())}", color = LightPurple)
                     Spacer(Modifier.height(8.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),

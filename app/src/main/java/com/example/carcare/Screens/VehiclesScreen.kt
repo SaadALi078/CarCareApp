@@ -1,7 +1,7 @@
 package com.example.carcare.Screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -26,10 +25,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,6 +44,7 @@ import com.example.carcare.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun VehiclesScreen() {
+    val context = LocalContext.current
     val viewModel: VehiclesViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
@@ -60,7 +59,7 @@ fun VehiclesScreen() {
                 TopAppBar(
                     title = {
                         Text(
-                            text = "My Vehicles",
+                            "My Vehicles",
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
@@ -91,7 +90,10 @@ fun VehiclesScreen() {
             },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { viewModel.showAddVehicleDialog = true },
+                    onClick = {
+                        viewModel.editingVehicle = null
+                        viewModel.showAddVehicleDialog = true
+                    },
                     containerColor = PrimaryPurple,
                     contentColor = Color.White,
                     modifier = Modifier
@@ -167,7 +169,10 @@ fun VehiclesScreen() {
                             if (viewModel.editingVehicle != null) {
                                 viewModel.updateVehicle(vehicleData)
                             } else {
-                                viewModel.addVehicle(vehicleData)
+                                viewModel.addVehicle(vehicleData) { newVehicleId ->
+                                    // Navigate back to maintenance with new vehicle
+                                    Router.navigateTo(Screen.MaintenanceScreenWithVehicle(newVehicleId))
+                                }
                             }
                             viewModel.showAddVehicleDialog = false
                             viewModel.editingVehicle = null

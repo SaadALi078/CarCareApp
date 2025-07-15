@@ -1,4 +1,3 @@
-// data/Reminder.kt
 package com.example.carcare.data
 
 import androidx.compose.ui.graphics.Color
@@ -18,17 +17,21 @@ data class Reminder(
     val isActive: Boolean = true,
     val repeatInterval: Int? = null, // in months
     val notificationDaysBefore: Int = 0,
-    val notificationKmBefore: Int = 0
-)
-{
+    val notificationKmBefore: Int = 0,
+    val manualStatus: ReminderStatus? = null // ✅ manually marked COMPLETE / CANCELLED
+) {
+
     @get:Exclude
     val status: ReminderStatus
         get() {
+            manualStatus?.let { return it } // ✅ override logic
+
             val now = Date()
             val dueDateObj = dueDate.toDate()
             val daysDiff = (dueDateObj.time - now.time) / (1000 * 60 * 60 * 24)
 
             return when {
+                daysDiff < -7 -> ReminderStatus.MISSED
                 daysDiff < 0 -> ReminderStatus.OVERDUE
                 daysDiff == 0L -> ReminderStatus.DUE_TODAY
                 daysDiff <= 3 -> ReminderStatus.UPCOMING_SOON
@@ -43,9 +46,12 @@ data class Reminder(
             ReminderStatus.DUE_TODAY -> Color(0xFFFFC107)
             ReminderStatus.UPCOMING_SOON -> Color(0xFFFF9800)
             ReminderStatus.UPCOMING -> Color(0xFF4CAF50)
+            ReminderStatus.COMPLETED -> Color(0xFF03A9F4)
+            ReminderStatus.CANCELLED -> Color(0xFF9E9E9E)
+            ReminderStatus.MISSED -> Color(0xFFB71C1C)
         }
 
-    fun toMap(): Map<String, Any> {
+    fun toMap(): Map<String, Any?> {
         return mapOf(
             "userId" to userId,
             "vehicleId" to vehicleId,
@@ -55,13 +61,10 @@ data class Reminder(
             "odometerThreshold" to odometerThreshold,
             "notes" to notes,
             "isActive" to isActive,
-            "repeatInterval" to (repeatInterval ?: ""),
+            "repeatInterval" to repeatInterval,
             "notificationDaysBefore" to notificationDaysBefore,
-            "notificationKmBefore" to notificationKmBefore
+            "notificationKmBefore" to notificationKmBefore,
+            "manualStatus" to manualStatus?.name // ✅ store as String
         )
     }
-}
-
-enum class ReminderStatus {
-    OVERDUE, DUE_TODAY, UPCOMING_SOON, UPCOMING
 }

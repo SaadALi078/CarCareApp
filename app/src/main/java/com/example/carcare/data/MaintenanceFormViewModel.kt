@@ -3,7 +3,8 @@ package com.example.carcare.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carcare.data.MaintenanceRecord
-import com.example.carcare.data.MaintenanceRepository
+import com.example.carcare.data.repository.MaintenanceRepository
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

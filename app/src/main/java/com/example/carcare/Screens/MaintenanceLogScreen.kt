@@ -10,13 +10,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carcare.navigation.Router
 import com.example.carcare.ui.components.MaintenanceRecordItem
 import com.example.carcare.viewmodels.MaintenanceLogViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,15 +30,24 @@ fun MaintenanceLogScreen(
 ) {
     val viewModel: MaintenanceLogViewModel = viewModel()
     val state = viewModel.state.collectAsState().value
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
-    LaunchedEffect(vehicleId, selectedCategory) {
+    LaunchedEffect(selectedCategory) {
         viewModel.loadRecords(selectedCategory)
     }
+
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(selectedCategory ?: "All Maintenance") },
+                title = {
+                    Text(
+                        if (selectedCategory != null)
+                            "$selectedCategory Log"
+                        else
+                            "Maintenance Log"
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { Router.navigateBack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -86,7 +99,7 @@ fun MaintenanceLogScreen(
                 ) {
                     items(state.records) { record ->
                         MaintenanceRecordItem(
-                            record = record,
+                            record = record.copy(date = dateFormat.format(SimpleDateFormat("MM/dd/yyyy").parse(record.date))),
                             onClick = {
                                 Router.navigateToMaintenanceForm(
                                     vehicleId = vehicleId,

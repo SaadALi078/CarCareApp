@@ -14,11 +14,12 @@ sealed class Screen(val route: String) {
     object ProfileScreen : Screen("profile")
     object NotificationsScreen : Screen("notifications")
     object EmergencyHelpScreen : Screen("emergency_help")
-    object MaintenanceScreen : Screen("maintenance")
 
+    // Main Maintenance Screen for selected vehicle
     data class MaintenanceScreenWithVehicle(val vehicleId: String) :
         Screen("maintenance/$vehicleId")
 
+    // Logs list (optional: with or without category filter)
     data class MaintenanceLogScreenWithVehicle(val vehicleId: String) :
         Screen("maintenance_log/$vehicleId")
 
@@ -27,6 +28,7 @@ sealed class Screen(val route: String) {
         val category: String
     ) : Screen("maintenance_log/$vehicleId/$category")
 
+    // Add/Edit Maintenance Form screen
     data class MaintenanceFormScreenWithVehicle(
         val vehicleId: String,
         val recordId: String? = null
@@ -53,15 +55,21 @@ object Router {
         }
     }
 
-    fun clearBackStack() = backStack.clear()
+    fun clearBackStack() {
+        backStack.clear()
+    }
 
     fun navigateToMaintenance(vehicleId: String) {
-        navigateTo(Screen.MaintenanceScreenWithVehicle(vehicleId))
+        if (vehicleId.isNotBlank()) {
+            navigateTo(Screen.MaintenanceScreenWithVehicle(vehicleId))
+        } else {
+            println("Error: vehicleId missing")
+        }
     }
 
     fun navigateToMaintenanceLog(vehicleId: String, category: String? = null) {
         if (vehicleId.isBlank()) {
-            println("Error: Missing vehicleId")
+            println("Error: vehicleId missing")
             return
         }
         if (category != null) {
@@ -73,13 +81,14 @@ object Router {
 
     fun navigateToMaintenanceForm(vehicleId: String, recordId: String? = null) {
         if (vehicleId.isBlank()) {
-            println("Error: Missing vehicleId")
+            println("Error: vehicleId missing")
             return
         }
         navigateTo(Screen.MaintenanceFormScreenWithVehicle(vehicleId, recordId))
     }
 }
 
+// Route parsing helpers (optional, if parsing routes dynamically)
 fun parseVehicleIdFromRoute(route: String): String? = route.split("/").getOrNull(1)
 fun parseMaintenanceCategory(route: String): String? = route.split("/").getOrNull(2)
 fun parseMaintenanceRecordId(route: String): String? = route.split("/").getOrNull(2)

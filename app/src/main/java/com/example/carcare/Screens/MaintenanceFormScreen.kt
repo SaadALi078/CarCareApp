@@ -15,14 +15,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carcare.R
 import com.example.carcare.data.MaintenanceRecord
+import com.example.carcare.data.Vehicle
 import com.example.carcare.navigation.Router
 import com.example.carcare.ui.components.showDatePickerDialog
 import com.example.carcare.viewmodels.MaintenanceFormViewModel
+import com.example.carcare.data.VehiclesViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,11 +36,19 @@ fun MaintenanceFormScreen(
     recordId: String? = null
 ) {
     val viewModel: MaintenanceFormViewModel = viewModel()
+    val vehiclesViewModel: VehiclesViewModel = viewModel()
     val state by viewModel.state.collectAsState()
+    val vehicleState by vehiclesViewModel.state.collectAsState()
     val context = LocalContext.current
+
+    // Get current vehicle
+    val currentVehicle = remember(vehicleId) {
+        vehicleState.vehicles.find { it.id == vehicleId }
+    }
 
     LaunchedEffect(recordId) {
         recordId?.let { viewModel.loadRecord(it) }
+        vehiclesViewModel.loadVehicles()
     }
 
     LaunchedEffect(state.saveSuccess) {
@@ -51,7 +62,7 @@ fun MaintenanceFormScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (recordId == null) "Add Maintenance" else "Edit Maintenance",
+                        if (recordId == null) "Add Maintenance" else "Edit Maintenance",
                         color = Color.White
                     )
                 },
@@ -94,6 +105,7 @@ fun MaintenanceFormScreen(
             }
         } else {
             MaintenanceFormContent(
+                vehicle = currentVehicle,
                 record = state.record,
                 onFieldChange = { viewModel.updateRecordField(it) },
                 error = state.error,
@@ -112,6 +124,7 @@ fun MaintenanceFormScreen(
 @SuppressLint("SimpleDateFormat")
 @Composable
 private fun MaintenanceFormContent(
+    vehicle: Vehicle?,
     record: MaintenanceRecord,
     onFieldChange: (MaintenanceRecord) -> Unit,
     error: String?,
@@ -130,6 +143,22 @@ private fun MaintenanceFormContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Vehicle context
+        vehicle?.let {
+            Text(
+                "For: ${it.name}",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            OutlinedTextField(
+                value = "${it.currentMileage} km",
+                onValueChange = {},
+                label = { Text("Current Vehicle Mileage") },
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         OutlinedTextField(
             value = record.type,
             onValueChange = { onFieldChange(record.copy(type = it)) },

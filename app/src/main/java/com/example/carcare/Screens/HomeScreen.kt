@@ -270,7 +270,8 @@ fun HomeScreen() {
 
     val items = listOf(
         DashboardItem("Emergency Help", R.drawable.ic_emergency, null),
-        DashboardItem("Maintenance Log", R.drawable.ic_repair, Screen.MaintenanceScreen),
+        DashboardItem("Maintenance Log", R.drawable.ic_repair, null),
+
         DashboardItem("Reminders", R.drawable.ic_reminder, Screen.RemindersScreen),
         DashboardItem("Vehicles", R.drawable.ic_vehicl, Screen.VehiclesScreen),
         DashboardItem("Profile & Settings", R.drawable.ic_profile, Screen.ProfileScreen)

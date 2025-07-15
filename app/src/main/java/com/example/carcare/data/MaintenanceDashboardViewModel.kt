@@ -1,30 +1,33 @@
 package com.example.carcare.data
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carcare.R
+import com.example.carcare.data.repository.MaintenanceRepository
+import com.example.carcare.data.repository.ReminderRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.*
+import java.util.concurrent.TimeUnit
+
 
 class MaintenanceDashboardViewModel : ViewModel() {
     private val _state = MutableStateFlow(MaintenanceDashboardState())
     val state: StateFlow<MaintenanceDashboardState> = _state.asStateFlow()
 
-    // Track the current vehicle ID
-    private var _currentVehicleId: String = ""
-    val currentVehicleId: String get() = _currentVehicleId
+    // Track the current vehicle
+    private var _currentVehicle: Vehicle? by mutableStateOf(null)
 
-    fun setVehicleId(vehicleId: String) {
-        _currentVehicleId = vehicleId
+    fun setVehicle(vehicle: Vehicle) {
+        _currentVehicle = vehicle
         loadData()
-    }
-
-    init {
-        // Don't load data until vehicle ID is set
     }
 
     private fun loadData() {
@@ -32,11 +35,43 @@ class MaintenanceDashboardViewModel : ViewModel() {
             _state.update { it.copy(isLoading = true) }
             delay(1200) // Simulate API call
 
+            val vehicle = _currentVehicle ?: run {
+                _state.update { it.copy(isLoading = false) }
+                return@launch
+            }
+
+            val currentDate = Date()
+            val currentMileage = vehicle.currentMileage
+
+            // Get reminders and maintenance records
+            val reminders = ReminderRepository().getVehicleReminders(vehicle.id)
+            val maintenanceRecords = MaintenanceRepository().getRecentMaintenance(vehicle.id, 3)
+
+            // Calculate counts
+            val overdueCount = reminders.count { reminder ->
+                val dueDate = reminder.dueDate.toDate()
+                val isOverdueByDate = dueDate.before(currentDate)
+                val isOverdueByMileage = reminder.odometerThreshold > 0 &&
+                        currentMileage >= reminder.odometerThreshold
+
+                isOverdueByDate || isOverdueByMileage
+            }
+
+            val upcomingCount = reminders.count { reminder ->
+                val dueDate = reminder.dueDate.toDate()
+                val isUpcoming = !dueDate.before(currentDate) &&
+                        daysUntil(dueDate) <= 7
+                val isNotOverdue = !(reminder.odometerThreshold > 0 &&
+                        currentMileage >= reminder.odometerThreshold)
+
+                isUpcoming && isNotOverdue
+            }
+
             _state.update {
                 it.copy(
                     isLoading = false,
-                    upcomingCount = 3,
-                    overdueCount = 1,
+                    upcomingCount = upcomingCount,
+                    overdueCount = overdueCount,
                     categories = listOf(
                         MaintenanceCategory("Oil Change", R.drawable.ic_oil),
                         MaintenanceCategory("Tire Rotation", R.drawable.ic_tire),
@@ -45,32 +80,15 @@ class MaintenanceDashboardViewModel : ViewModel() {
                         MaintenanceCategory("Fluid Check", R.drawable.ic_fluid),
                         MaintenanceCategory("Battery Check", R.drawable.ic_battery)
                     ),
-                    recentMaintenance = listOf(
-                        MaintenanceRecord(
-                            id = "1",
-                            type = "Oil Change",
-                            date = "May 12, 2025",
-                            mileage = 12500,
-                            cost = 59.99
-                        ),
-                        MaintenanceRecord(
-                            id = "2",
-                            type = "Tire Rotation",
-                            date = "Apr 28, 2025",
-                            mileage = 12000,
-                            cost = 29.99
-                        ),
-                        MaintenanceRecord(
-                            id = "3",
-                            type = "Brake Inspection",
-                            date = "Apr 15, 2025",
-                            mileage = 11500,
-                            cost = 0.0
-                        )
-                    )
+                    recentMaintenance = maintenanceRecords
                 )
             }
         }
+    }
+
+    private fun daysUntil(date: Date): Long {
+        val diff = date.time - Date().time
+        return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS)
     }
 
     fun selectCategory(category: String) {

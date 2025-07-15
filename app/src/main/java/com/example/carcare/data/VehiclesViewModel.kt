@@ -27,7 +27,7 @@ class VehiclesViewModel : ViewModel() {
             _state.update { it.copy(isLoading = true) }
             try {
                 val vehicles = repository.getVehicles()
-                Log.d("VehicleCheck", "📦 Vehicles loaded: $vehicles") // 👈 Add this
+                Log.d("VehicleCheck", "📦 Vehicles loaded: $vehicles")
                 _state.update { it.copy(isLoading = false, vehicles = vehicles) }
             } catch (e: Exception) {
                 Log.e("VehicleCheck", "❌ Failed to load", e)
@@ -38,26 +38,28 @@ class VehiclesViewModel : ViewModel() {
         }
     }
 
-    fun addVehicle(vehicle: Vehicle) {
+    fun addVehicle(vehicle: Vehicle, onSuccess: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
                 val updatedVehicle = vehicle.copy(userId = currentUserId)
                 repository.addVehicle(updatedVehicle)
                 loadVehicles()
-            } catch (_: Exception) {}
+                onSuccess(updatedVehicle.id)
+            } catch (e: Exception) {
+                Log.e("VehicleCheck", "❌ Failed to add vehicle", e)
+            }
         }
     }
-
-
-
 
     fun updateVehicle(vehicle: Vehicle) {
         viewModelScope.launch {
             try {
                 repository.updateVehicle(vehicle)
                 loadVehicles()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e("VehicleCheck", "❌ Failed to update vehicle", e)
+            }
         }
     }
 
@@ -66,7 +68,9 @@ class VehiclesViewModel : ViewModel() {
             try {
                 repository.deleteVehicle(vehicleId)
                 loadVehicles()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e("VehicleCheck", "❌ Failed to delete vehicle", e)
+            }
         }
     }
 
