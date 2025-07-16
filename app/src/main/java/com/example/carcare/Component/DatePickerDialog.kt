@@ -1,11 +1,9 @@
 package com.example.carcare.ui.components
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import java.util.*
 
-@SuppressLint("SimpleDateFormat")
 fun showDatePickerDialog(
     context: Context,
     onDateSelected: (Date) -> Unit,
@@ -22,9 +20,7 @@ fun showDatePickerDialog(
             calendar.set(selectedYear, selectedMonth, selectedDay)
             onDateSelected(calendar.time)
         },
-        year,
-        month,
-        day
+        year, month, day
     )
 
     datePickerDialog.setOnDismissListener { onDismiss() }

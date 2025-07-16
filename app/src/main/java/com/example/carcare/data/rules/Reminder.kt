@@ -18,7 +18,9 @@ data class Reminder(
     val repeatInterval: Int? = null, // in months
     val notificationDaysBefore: Int = 0,
     val notificationKmBefore: Int = 0,
-    val manualStatus: ReminderStatus? = null // ✅ manually marked COMPLETE / CANCELLED
+    val manualStatus: ReminderStatus? = null, // ✅ manually marked COMPLETE / CANCELLED
+    val description: String = "",
+
 ) {
 
     @get:Exclude

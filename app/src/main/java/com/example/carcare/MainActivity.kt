@@ -17,18 +17,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CarCareTheme {
-                Router.currentScreen.value = Screen.LoginScreen
+                // No need to set `Router.currentScreen.value`
                 CarCareapp()
             }
         }
     }
 }
 
+
 @Preview
 @Composable
-fun DefaultPreview(){
+fun DefaultPreview() {
     CarCareTheme {
-        Router.currentScreen.value = Screen.LoginScreen
+        Router.navigateTo(Screen.LoginScreen)
         CarCareapp()
     }
 }

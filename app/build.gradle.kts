@@ -65,6 +65,12 @@ dependencies {
     // Material icons (Material 2 icons)
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
+// WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Location services
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+
     // ViewModel Compose integration
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
 

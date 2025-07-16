@@ -1,57 +1,79 @@
 package com.example.carcare.navigation
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 sealed class Screen(val route: String) {
+    // Authentication Screens
     object Signup : Screen("signup")
     object TermsAndConditionsScreen : Screen("terms")
     object LoginScreen : Screen("login")
     object ForgetPasswordScreen : Screen("forget_password")
 
+    // Core Screens
     object HomeScreen : Screen("home")
-    object VehiclesScreen : Screen("vehicles")
-    object RemindersScreen : Screen("reminders")
-    object ProfileScreen : Screen("profile")
     object NotificationsScreen : Screen("notifications")
     object EmergencyHelpScreen : Screen("emergency_help")
+    object ProfileScreen : Screen("profile")
+    object RemindersScreen : Screen("reminders")
+    object VehiclesScreen : Screen("vehicles")
 
-    // Main Maintenance Screen for selected vehicle
+    // Maintenance Screens with parameters
     data class MaintenanceScreenWithVehicle(val vehicleId: String) :
-        Screen("maintenance/$vehicleId")
+        Screen("maintenance/{vehicleId}") {
+        companion object {
+            const val ROUTE = "maintenance"
+            fun createRoute(vehicleId: String) = "$ROUTE/$vehicleId"
+        }
+    }
 
-    // Logs list (optional: with or without category filter)
     data class MaintenanceLogScreenWithVehicle(val vehicleId: String) :
-        Screen("maintenance_log/$vehicleId")
+        Screen("maintenance_log/{vehicleId}") {
+        companion object {
+            const val ROUTE = "maintenance_log"
+            fun createRoute(vehicleId: String) = "$ROUTE/$vehicleId"
+        }
+    }
 
-    data class MaintenanceLogScreenWithCategory(
-        val vehicleId: String,
-        val category: String
-    ) : Screen("maintenance_log/$vehicleId/$category")
+    data class MaintenanceLogScreenWithCategory(val vehicleId: String, val category: String) :
+        Screen("maintenance_log/{vehicleId}/{category}") {
+        companion object {
+            const val ROUTE = "maintenance_log"
+            fun createRoute(vehicleId: String, category: String) = "$ROUTE/$vehicleId/$category"
+        }
+    }
 
-    // Add/Edit Maintenance Form screen
-    data class MaintenanceFormScreenWithVehicle(
-        val vehicleId: String,
-        val recordId: String? = null
-    ) : Screen(
-        if (recordId != null)
-            "maintenance_form/$vehicleId/$recordId"
-        else
-            "maintenance_form/$vehicleId"
-    )
+    data class MaintenanceFormScreenWithVehicle(val vehicleId: String, val recordId: String? = null) :
+        Screen(
+            if (recordId != null)
+                "maintenance_form/{vehicleId}/{recordId}"
+            else
+                "maintenance_form/{vehicleId}"
+        ) {
+        companion object {
+            const val ROUTE = "maintenance_form"
+            fun createRoute(vehicleId: String, recordId: String? = null): String =
+                if (recordId != null) "$ROUTE/$vehicleId/$recordId" else "$ROUTE/$vehicleId"
+        }
+    }
 }
 
 object Router {
     private val backStack = mutableListOf<Screen>()
-    var currentScreen = mutableStateOf<Screen>(Screen.LoginScreen)
+
+    // ✅ Public readable, private writable state
+    var currentScreen by mutableStateOf<Screen>(Screen.LoginScreen)
+        private set
 
     fun navigateTo(destination: Screen) {
-        backStack.add(currentScreen.value)
-        currentScreen.value = destination
+        backStack.add(currentScreen)
+        currentScreen = destination
     }
 
     fun navigateBack() {
         if (backStack.isNotEmpty()) {
-            currentScreen.value = backStack.removeAt(backStack.lastIndex)
+            currentScreen = backStack.removeAt(backStack.lastIndex)
         }
     }
 
@@ -59,19 +81,12 @@ object Router {
         backStack.clear()
     }
 
+    // ✅ Convenient navigation helpers
     fun navigateToMaintenance(vehicleId: String) {
-        if (vehicleId.isNotBlank()) {
-            navigateTo(Screen.MaintenanceScreenWithVehicle(vehicleId))
-        } else {
-            println("Error: vehicleId missing")
-        }
+        navigateTo(Screen.MaintenanceScreenWithVehicle(vehicleId))
     }
 
     fun navigateToMaintenanceLog(vehicleId: String, category: String? = null) {
-        if (vehicleId.isBlank()) {
-            println("Error: vehicleId missing")
-            return
-        }
         if (category != null) {
             navigateTo(Screen.MaintenanceLogScreenWithCategory(vehicleId, category))
         } else {
@@ -80,15 +95,32 @@ object Router {
     }
 
     fun navigateToMaintenanceForm(vehicleId: String, recordId: String? = null) {
-        if (vehicleId.isBlank()) {
-            println("Error: vehicleId missing")
-            return
-        }
         navigateTo(Screen.MaintenanceFormScreenWithVehicle(vehicleId, recordId))
     }
-}
 
-// Route parsing helpers (optional, if parsing routes dynamically)
-fun parseVehicleIdFromRoute(route: String): String? = route.split("/").getOrNull(1)
-fun parseMaintenanceCategory(route: String): String? = route.split("/").getOrNull(2)
-fun parseMaintenanceRecordId(route: String): String? = route.split("/").getOrNull(2)
+    fun navigateToEmergencyHelp() {
+        navigateTo(Screen.EmergencyHelpScreen)
+    }
+
+    fun navigateToVehicles() {
+        navigateTo(Screen.VehiclesScreen)
+    }
+
+    fun navigateToReminders() {
+        navigateTo(Screen.RemindersScreen)
+    }
+
+    fun navigateToProfile() {
+        navigateTo(Screen.ProfileScreen)
+    }
+
+    // Route Parsing Helpers (if needed)
+    fun parseVehicleIdFromRoute(route: String): String? =
+        route.split("/").getOrNull(1)
+
+    fun parseMaintenanceCategory(route: String): String? =
+        route.split("/").getOrNull(2)
+
+    fun parseMaintenanceRecordId(route: String): String? =
+        route.split("/").getOrNull(2)
+}

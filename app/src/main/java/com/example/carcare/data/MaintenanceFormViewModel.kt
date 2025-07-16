@@ -1,10 +1,11 @@
 package com.example.carcare.viewmodels
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carcare.data.MaintenanceRecord
 import com.example.carcare.data.repository.MaintenanceRepository
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,7 +46,9 @@ class MaintenanceFormViewModel(
         _state.update { it.copy(record = updatedRecord) }
     }
 
-    fun validateAndSave(vehicleId: String) {
+    // MaintenanceFormViewModel.kt (only this)
+    fun validateAndSave(context: Context, vehicleId: String)
+    {
         val currentRecord = state.value.record.copy(vehicleId = vehicleId)
 
         // Reset all errors
@@ -64,7 +67,7 @@ class MaintenanceFormViewModel(
         if (!isValid) return
 
         // Proceed with saving
-        saveRecord(currentRecord)
+        saveRecord(currentRecord, context)
     }
 
     private fun validateFields(record: MaintenanceRecord): Boolean {
@@ -107,7 +110,7 @@ class MaintenanceFormViewModel(
         }
     }
 
-    private fun saveRecord(record: MaintenanceRecord) {
+    private fun saveRecord(record: MaintenanceRecord, context: Context) {
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             try {
@@ -120,6 +123,7 @@ class MaintenanceFormViewModel(
                             saveSuccess = true
                         )
                     }
+                    Toast.makeText(context, "Maintenance record saved", Toast.LENGTH_SHORT).show()
                 } else {
                     repository.updateRecord(record)
                     _state.update {
@@ -128,6 +132,7 @@ class MaintenanceFormViewModel(
                             saveSuccess = true
                         )
                     }
+                    Toast.makeText(context, "Maintenance record updated", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 _state.update {
@@ -136,6 +141,7 @@ class MaintenanceFormViewModel(
                         error = "Failed to save record: ${e.message}"
                     )
                 }
+                Toast.makeText(context, "Failed to save record", Toast.LENGTH_SHORT).show()
             }
         }
     }

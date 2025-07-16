@@ -9,5 +9,8 @@ data class Vehicle(
     val licensePlate: String = "",
     val currentMileage: Int = 0,
     val maintenanceCount: Int = 0,
-    val userId: String = ""// Optional
+    val userId: String = "",// Optional
+
+    val numberPlate: String = "",
+
 )

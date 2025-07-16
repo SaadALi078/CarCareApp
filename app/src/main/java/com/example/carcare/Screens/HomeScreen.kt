@@ -142,6 +142,7 @@ fun ModernBottomBar() {
     val selectedIndex = remember { mutableStateOf(0) }
     val navItems = listOf(
         Triple(R.drawable.ic_home, "Home", Screen.HomeScreen),
+
         Triple(R.drawable.ic_reminder, "Reminders", Screen.RemindersScreen),
         Triple(R.drawable.ic_vehicl, "Vehicles", Screen.VehiclesScreen),
         Triple(R.drawable.ic_profile, "Profile", Screen.ProfileScreen)
@@ -268,14 +269,22 @@ fun HomeScreen() {
         vehiclesViewModel.loadVehicles()
     }
 
-    val items = listOf(
-        DashboardItem("Emergency Help", R.drawable.ic_emergency, null),
-        DashboardItem("Maintenance Log", R.drawable.ic_repair, null),
+    val vehicleId = state.vehicles.firstOrNull()?.id // Get the first available vehicle
 
-        DashboardItem("Reminders", R.drawable.ic_reminder, Screen.RemindersScreen),
+    val items = listOf(
+        DashboardItem("Emergency Help", R.drawable.ic_emergency, Screen.EmergencyHelpScreen),
+        DashboardItem(
+            "Maintenance Log",
+            R.drawable.ic_repair,
+            vehicleId?.let { Screen.MaintenanceLogScreenWithVehicle(it) }
+        ),
+
+
+                DashboardItem("Reminders", R.drawable.ic_reminder, Screen.RemindersScreen),
         DashboardItem("Vehicles", R.drawable.ic_vehicl, Screen.VehiclesScreen),
         DashboardItem("Profile & Settings", R.drawable.ic_profile, Screen.ProfileScreen)
     )
+
 
     Box(modifier = Modifier
         .fillMaxSize()

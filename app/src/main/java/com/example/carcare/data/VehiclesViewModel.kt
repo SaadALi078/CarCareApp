@@ -12,15 +12,13 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class VehiclesViewModel : ViewModel() {
-
-    // 👇 Manually create your repository (no constructor injection)
     private val repository = VehicleRepository()
-
     private val _state = MutableStateFlow(VehiclesState())
     val state: StateFlow<VehiclesState> = _state.asStateFlow()
 
     var showAddVehicleDialog by mutableStateOf(false)
     var editingVehicle: Vehicle? by mutableStateOf(null)
+    var errorMessage by mutableStateOf<String?>(null)
 
     fun loadVehicles() {
         viewModelScope.launch {
@@ -28,17 +26,34 @@ class VehiclesViewModel : ViewModel() {
             try {
                 val vehicles = repository.getVehicles()
                 Log.d("VehicleCheck", "📦 Vehicles loaded: $vehicles")
-                _state.update { it.copy(isLoading = false, vehicles = vehicles) }
+                _state.update { it.copy(isLoading = false, vehicles = vehicles, error = null) }
             } catch (e: Exception) {
                 Log.e("VehicleCheck", "❌ Failed to load", e)
                 _state.update {
-                    it.copy(isLoading = false, error = "Failed to load vehicles: ${e.message}")
+                    it.copy(
+                        isLoading = false,
+                        error = "Failed to load vehicles: ${e.message}"
+                    )
                 }
             }
         }
     }
 
     fun addVehicle(vehicle: Vehicle, onSuccess: (String) -> Unit) {
+        // Validate vehicle data
+        if (vehicle.name.isBlank()) {
+            errorMessage = "Vehicle name is required"
+            return
+        }
+        if (vehicle.year == null || vehicle.year!! < 1900 || vehicle.year!! > java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)) {
+            errorMessage = "Invalid year"
+            return
+        }
+        if (vehicle.currentMileage < 0) {
+            errorMessage = "Mileage must be positive"
+            return
+        }
+
         viewModelScope.launch {
             try {
                 val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
@@ -46,19 +61,37 @@ class VehiclesViewModel : ViewModel() {
                 repository.addVehicle(updatedVehicle)
                 loadVehicles()
                 onSuccess(updatedVehicle.id)
+                errorMessage = null
             } catch (e: Exception) {
                 Log.e("VehicleCheck", "❌ Failed to add vehicle", e)
+                errorMessage = "Failed to add vehicle: ${e.message}"
             }
         }
     }
 
     fun updateVehicle(vehicle: Vehicle) {
+        // Validate vehicle data
+        if (vehicle.name.isBlank()) {
+            errorMessage = "Vehicle name is required"
+            return
+        }
+        if (vehicle.year == null || vehicle.year!! < 1900 || vehicle.year!! > java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)) {
+            errorMessage = "Invalid year"
+            return
+        }
+        if (vehicle.currentMileage < 0) {
+            errorMessage = "Mileage must be positive"
+            return
+        }
+
         viewModelScope.launch {
             try {
                 repository.updateVehicle(vehicle)
                 loadVehicles()
+                errorMessage = null
             } catch (e: Exception) {
                 Log.e("VehicleCheck", "❌ Failed to update vehicle", e)
+                errorMessage = "Failed to update vehicle: ${e.message}"
             }
         }
     }
@@ -68,8 +101,10 @@ class VehiclesViewModel : ViewModel() {
             try {
                 repository.deleteVehicle(vehicleId)
                 loadVehicles()
+                errorMessage = null
             } catch (e: Exception) {
                 Log.e("VehicleCheck", "❌ Failed to delete vehicle", e)
+                errorMessage = "Failed to delete vehicle: ${e.message}"
             }
         }
     }

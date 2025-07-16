@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carcare.R
+import android.content.Context
 import com.example.carcare.data.MaintenanceRecord
 import com.example.carcare.data.Vehicle
 import com.example.carcare.navigation.Router
@@ -39,9 +40,7 @@ fun MaintenanceFormScreen(
     val vehiclesViewModel: VehiclesViewModel = viewModel()
     val state by viewModel.state.collectAsState()
     val vehicleState by vehiclesViewModel.state.collectAsState()
-    val context = LocalContext.current
 
-    // Get current vehicle
     val currentVehicle = remember(vehicleId) {
         vehicleState.vehicles.find { it.id == vehicleId }
     }
@@ -56,7 +55,7 @@ fun MaintenanceFormScreen(
             Router.navigateBack()
         }
     }
-
+val context=LocalContext.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -82,7 +81,9 @@ fun MaintenanceFormScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { viewModel.validateAndSave(vehicleId) },
+                onClick = { // MaintenanceFormScreen.kt (only this)
+                    viewModel.validateAndSave(context, vehicleId)
+                },
                 containerColor = Color(0xFFA9016D),
                 contentColor = Color.White,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -135,7 +136,6 @@ private fun MaintenanceFormContent(
     modifier: Modifier = Modifier
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -143,13 +143,8 @@ private fun MaintenanceFormContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Vehicle context
         vehicle?.let {
-            Text(
-                "For: ${it.name}",
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
+            Text("For: ${it.name}", color = Color.White, fontWeight = FontWeight.Bold)
             OutlinedTextField(
                 value = "${it.currentMileage} km",
                 onValueChange = {},
@@ -164,37 +159,24 @@ private fun MaintenanceFormContent(
             onValueChange = { onFieldChange(record.copy(type = it)) },
             label = { Text("Maintenance Type*") },
             isError = typeError != null,
-            supportingText = {
-                typeError?.let {
-                    Text(text = it, color = MaterialTheme.colorScheme.error)
-                }
-            },
+            supportingText = { typeError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
         OutlinedTextField(
             value = record.date,
-            onValueChange = { },
+            onValueChange = {},
             label = { Text("Date*") },
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { showDatePicker = true }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_calendar),
-                        contentDescription = "Pick date"
-                    )
+                    Icon(painter = painterResource(id = R.drawable.ic_calendar), contentDescription = "Pick date")
                 }
             },
             isError = dateError != null,
-            supportingText = {
-                dateError?.let {
-                    Text(text = it, color = MaterialTheme.colorScheme.error)
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showDatePicker = true }
+            supportingText = { dateError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
+            modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
         )
 
         OutlinedTextField(
@@ -208,11 +190,7 @@ private fun MaintenanceFormContent(
             label = { Text("Mileage (km)*") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             isError = mileageError != null,
-            supportingText = {
-                mileageError?.let {
-                    Text(text = it, color = MaterialTheme.colorScheme.error)
-                }
-            },
+            supportingText = { mileageError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -226,15 +204,9 @@ private fun MaintenanceFormContent(
                 }
             },
             label = { Text("Cost*") },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal
-            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             isError = costError != null,
-            supportingText = {
-                costError?.let {
-                    Text(text = it, color = MaterialTheme.colorScheme.error)
-                }
-            },
+            supportingText = { costError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -243,30 +215,43 @@ private fun MaintenanceFormContent(
             value = record.notes,
             onValueChange = { onFieldChange(record.copy(notes = it)) },
             label = { Text("Notes") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp),
+            modifier = Modifier.fillMaxWidth().height(120.dp),
             maxLines = 4
         )
 
         error?.let {
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
         }
     }
 
-    if (showDatePicker) {
-        showDatePickerDialog(
-            context = context,
-            onDateSelected = { date ->
-                val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-                onFieldChange(record.copy(date = dateFormat.format(date)))
-                showDatePicker = false
-            },
-            onDismiss = { showDatePicker = false }
-        )
+    // ✅ Date Picker Dialog trigger wrapped in its own composable for stability
+    ShowDatePickerIfNeeded(
+        show = showDatePicker,
+        onDatePicked = {
+            onFieldChange(record.copy(date = it))
+            showDatePicker = false
+        },
+        onDismiss = { showDatePicker = false }
+    )
+}
+
+@Composable
+fun ShowDatePickerIfNeeded(
+    show: Boolean,
+    onDatePicked: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    if (show) {
+        LaunchedEffect(show) {
+            showDatePickerDialog(
+                context = context,
+                onDateSelected = { date ->
+                    val formatted = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(date)
+                    onDatePicked(formatted)
+                },
+                onDismiss = onDismiss
+            )
+        }
     }
 }

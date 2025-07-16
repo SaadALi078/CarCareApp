@@ -1,10 +1,15 @@
 package com.example.carcare.data.repository
 
+import android.content.Context
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.carcare.data.Reminder
-import com.example.carcare.data.ReminderStatus
+import com.example.carcare.workers.ReminderNotificationWorker
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,74 +18,72 @@ class ReminderRepository @Inject constructor() {
     private val db = Firebase.firestore
     private val collection = db.collection("reminders")
 
-    // ✅ Get all active reminders for a specific vehicle
     suspend fun getVehicleReminders(vehicleId: String): List<Reminder> {
         return try {
-            collection
+            val snapshot = collection
                 .whereEqualTo("vehicleId", vehicleId)
                 .whereEqualTo("isActive", true)
                 .get()
                 .await()
-                .documents
-                .mapNotNull { doc ->
-                    doc.toObject(Reminder::class.java)?.copy(id = doc.id)
-                }
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Reminder::class.java)?.copy(id = doc.id)
+            }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    // ✅ Get all reminders for a specific user
     suspend fun getUserReminders(userId: String): List<Reminder> {
         return try {
-            collection
+            val snapshot = collection
                 .whereEqualTo("userId", userId)
                 .get()
                 .await()
-                .documents
-                .mapNotNull { doc ->
-                    doc.toObject(Reminder::class.java)?.copy(id = doc.id)
-                }
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Reminder::class.java)?.copy(id = doc.id)
+            }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    // ✅ Add new reminder
     suspend fun addReminder(reminder: Reminder) {
-        try {
-            collection.add(reminder).await()
-        } catch (e: Exception) {
-            throw e
-        }
+        collection.add(reminder).await()
     }
 
-    // ✅ Update an existing reminder
     suspend fun updateReminder(reminder: Reminder) {
-        try {
-            collection.document(reminder.id).set(reminder).await()
-        } catch (e: Exception) {
-            throw e
-        }
+        collection.document(reminder.id).set(reminder).await()
     }
 
-    // ✅ Delete a reminder by ID
-    suspend fun deleteReminder(reminderId: String) {
-        try {
-            collection.document(reminderId).delete().await()
-        } catch (e: Exception) {
-            throw e
-        }
+    suspend fun deleteReminder(id: String) {
+        collection.document(id).delete().await()
     }
 
-    // ✅ Mark a reminder as complete
-    suspend fun markAsComplete(reminderId: String) {
-        try {
-            collection.document(reminderId)
-                .update("status", ReminderStatus.COMPLETED)
-                .await()
-        } catch (e: Exception) {
-            throw e
+    suspend fun markAsComplete(id: String) {
+        collection.document(id).update("manualStatus", "COMPLETED").await()
+    }
+
+    fun scheduleReminderNotification(context: Context, reminder: Reminder) {
+        val dueDate = reminder.dueDate.toDate().time
+        val now = System.currentTimeMillis()
+
+        // Only schedule if due date is in future
+        if (dueDate > now) {
+            val delay = dueDate - now
+
+            val data = Data.Builder()
+                .putString("title", "Maintenance Due: ${reminder.type}")
+                .putString("message", "${reminder.vehicleName} - Due on ${reminder.dueDate.toDate()}")
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<ReminderNotificationWorker>()
+                .setInputData(data)
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .build()
+
+            WorkManager.getInstance(context).enqueue(request)
         }
     }
 }
