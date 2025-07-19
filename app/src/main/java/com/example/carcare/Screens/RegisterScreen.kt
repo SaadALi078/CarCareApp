@@ -4,10 +4,10 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,17 +18,15 @@ import androidx.navigation.NavController
 import com.carcare.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
 
-
-
-
-
 @Composable
-fun LoginScreen(navController: NavController) {
+fun RegisterScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 
@@ -39,8 +37,19 @@ fun LoginScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Login", style = MaterialTheme.typography.titleLarge)
+        Text("Register", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Name") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = email,
@@ -69,36 +78,70 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            singleLine = true,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                if (email.isBlank() || password.isBlank()) {
+                if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
                     Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
+
+                if (password != confirmPassword) {
+                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+
                 loading = true
-                auth.signInWithEmailAndPassword(email, password)
+                auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
-                        loading = false
                         if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user != null && user.isEmailVerified) {
-                                navController.navigate(Screen.Dashboard.route) {
-                                    popUpTo(Screen.Login.route) { inclusive = true }
+                            auth.currentUser?.sendEmailVerification()
+                                ?.addOnCompleteListener { verifyTask ->
+                                    loading = false
+                                    if (verifyTask.isSuccessful) {
+                                        Toast.makeText(
+                                            context,
+                                            "Verification email sent. Check your inbox.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        navController.navigate(Screen.Login.route) {
+                                            popUpTo(Screen.Register.route) { inclusive = true }
+                                        }
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Failed to send verification: ${verifyTask.exception?.message}",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
                                 }
-                            } else {
-                                Toast.makeText(context, "Email not verified. Please check your inbox.", Toast.LENGTH_LONG).show()
-                            }
                         } else {
-                            Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                            loading = false
+                            Toast.makeText(
+                                context,
+                                "Registration failed: ${task.exception?.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !loading
         ) {
-            Text("Login")
+            Text("Register")
         }
 
         if (loading) {
@@ -109,20 +152,10 @@ fun LoginScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            "Don't have an account? Sign Up",
+            "Already have an account? Login",
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.clickable {
-                navController.navigate("register")
-            }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            "Forgot Password?",
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable {
-                navController.navigate("forgot")
+                navController.navigate(Screen.Login.route)
             }
         )
     }

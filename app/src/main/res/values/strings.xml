@@ -1,51 +1,37 @@
+<!-- app/src/main/res/values/strings.xml -->
 <resources>
-    <string name="app_name" translatable="false">Car Care</string>
-    <string name="hello" translatable="false">Hey there, </string>
-    <string name="createaccount" translatable="false">Create an Account </string>
-    <string name="welcome" translatable="false">Welcome Back </string>
-    <string name="firstname" translatable="false">First Name </string>
-    <string name="lastname" translatable="false">Last Name </string>
-    <string name="email" translatable="false">Email Address </string>
-    <string name="password" translatable="false">Password </string>
-    <string name="hide_passowrd" translatable="false">Hide </string>
-    <string name="show_password" translatable="false">Show </string>
-    <string name="terms_and_Conditions" translatable="false">Terms and Conditions
+    <string name="app_name">Car Care</string>
 
-Welcome to CarCare!
+    <!-- Common -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="loading">Loading...</string>
 
-By downloading or using this app, you agree to the following terms and conditions. Please read them carefully.
+    <!-- Auth -->
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="login_button">Sign In</string>
+    <string name="signup_prompt">Don\'t have an account? Sign Up</string>
+    <string name="forgot_password">Forgot Password?</string>
 
-1. Acceptance of Terms:
-By accessing and using CarCare, you agree to be bound by these Terms and Conditions. If you do not agree with any part of the terms, please do not use the app.
+    <!-- Vehicle -->
+    <string name="add_vehicle_title">Add Your Vehicle</string>
+    <string name="make_hint">Make (e.g., Toyota)</string>
+    <string name="model_hint">Model (e.g., Corolla)</string>
+    <string name="year_hint">Year</string>
+    <string name="license_plate_hint">License Plate</string>
+    <string name="mileage_hint">Current Mileage</string>
+    <string name="save_vehicle">Save Vehicle</string>
+    <string name="skip_for_now">Skip for Now</string>
 
-2. App Usage:
-You may use this app only for personal, non-commercial purposes. You must not misuse the app or interfere with its normal operation.
-
-3. Account Information:
-You are responsible for maintaining the confidentiality of your login information and for all activities that occur under your account.
-
-4. Privacy:
-We respect your privacy. Your personal information will not be shared with third parties without your consent. For more details, please read our Privacy Policy.
-
-5. Intellectual Property:
-All content, logos, and trademarks in the app are the property of CarCare and are protected by copyright and intellectual property laws.
-
-6. Modifications:
-We reserve the right to modify or update these Terms at any time. Continued use of the app after changes means you accept those changes.
-
-7. Disclaimer:
-We are not responsible for any damages or losses caused by the use or inability to use this app. Use it at your own risk.
-
-8. Contact Us:
-If you have any questions or concerns about these Terms, feel free to contact us at: saadali23495097@gmail.com
-
-Thank you for using CarCare! </string>\
-    <string name="register" translatable="false">Register </string>
-    <string name="go_to_login" translatable="false">Already have an account?Login </string>
-    <string name="login" translatable="false">Login</string>
-    <string name="forgot_password" translatable="false">Forgot your password </string>
-    <string name="emailerror" translatable="false">Please enter a valid email address. </string>
-    <string name="logout" translatable="false">Logout</string>
-
-
+    <!-- Maintenance -->
+    <string name="maintenance_title">Maintenance Records</string>
+    <string name="upcoming_maintenance">Upcoming Maintenance</string>
+    <string name="maintenance_history">History</string>
+    <string name="add_maintenance">Add Maintenance</string>
+    <string name="maintenance_type">Type</string>
+    <string name="maintenance_date">Date</string>
+    <string name="maintenance_mileage">Mileage</string>
+    <string name="maintenance_notes">Notes</string>
+    <string name="set_reminder">Set Reminder</string>
 </resources>

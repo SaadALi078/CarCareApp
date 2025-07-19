@@ -1,59 +1,39 @@
-package com.example.carcare.data.repository
+package com.carcare.repository
 
-import android.util.Log
-import com.example.carcare.data.Vehicle
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import javax.inject.Inject
 
-class VehicleRepository @Inject constructor() {
-    private val firestore = Firebase.firestore
-    private val collection = firestore.collection("vehicles")
+class VehicleRepository(
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+) {
+    suspend fun saveVehicle(
+        make: String,
+        model: String,
+        year: String,
+        plate: String,
+        mileage: String
+    ): Result<Unit> {
+        val uid = auth.currentUser?.uid ?: return Result.failure(Exception("User not logged in"))
 
-    suspend fun getVehicles(): List<Vehicle> {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return emptyList()
+        val vehicleData = hashMapOf(
+            "make" to make,
+            "model" to model,
+            "year" to year,
+            "plate" to plate,
+            "mileage" to mileage
+        )
+
         return try {
-            collection
-                .whereEqualTo("userId", currentUserId) // ✅ Only get vehicles for this user
-                .get()
+            firestore.collection("users")
+                .document(uid)
+                .collection("vehicles")
+                .add(vehicleData)
                 .await()
-                .documents.mapNotNull { doc ->
-                    doc.toObject(Vehicle::class.java)?.copy(id = doc.id)
-                }
+            Result.success(Unit)
         } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-
-    suspend fun addVehicle(vehicle: Vehicle) {
-        try {
-            val id = vehicle.id.ifBlank { System.currentTimeMillis().toString() }
-            val vehicleWithId = vehicle.copy(id = id)
-            collection.document(id).set(vehicleWithId).await()
-        } catch (e: Exception) {
-            Log.e("Firestore", "❌ Failed to add vehicle", e)
-        }
-    }
-
-
-
-    suspend fun updateVehicle(vehicle: Vehicle) {
-        try {
-            require(vehicle.id.isNotEmpty()) { "Vehicle ID must not be empty" }
-            collection.document(vehicle.id).set(vehicle).await()
-        } catch (e: Exception) {
-            throw Exception("Failed to update vehicle: ${e.message}")
-        }
-    }
-
-    suspend fun deleteVehicle(vehicleId: String) {
-        try {
-            collection.document(vehicleId).delete().await()
-        } catch (e: Exception) {
-            throw Exception("Failed to delete vehicle: ${e.message}")
+            Result.failure(e)
         }
     }
 }

@@ -21,6 +21,15 @@
     <color name="accent_magenta">#A9016D</color>
     <color name="card_background">#1C1B1F</color>
     <color name="light_purple">#E0BCFF</color>
+    <!-- app/src/main/res/values/colors.xml -->
+
+        <color name="primaryPurple">#7E57C2</color>
+        <color name="primaryPurpleDark">#5E35B1</color>
+        <color name="accentMagenta">#EC407A</color>
+        <color name="lightPurple">#D1C4E9</color>
+        <color name="secondaryBlue">#42A5F5</color>
+        <color name="background">#F5F5F5</color>
+
 
     <color name="softGray">#DCD7D7</color>
 </resources>

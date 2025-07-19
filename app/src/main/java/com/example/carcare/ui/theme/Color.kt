@@ -25,3 +25,4 @@ val BackgroundsColor=Color(0xFF004AAD)
 val Background2color=Color(0xCB6CE6)
 
 val loginbackgroundcolro=Color(0x121212)
+// Car Care/app/src/main/java/com/example/carcare/ui/theme/Color.kt

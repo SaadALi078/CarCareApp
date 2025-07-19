@@ -67,7 +67,9 @@ dependencies {
 
 // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
-
+    implementation("androidx.hilt:hilt-work:1.1.0")
+    kapt("androidx.hilt:hilt-compiler:1.1.0")
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.5")
     // Location services
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
@@ -86,6 +88,14 @@ dependencies {
     kapt(libs.dagger.hilt.compiler)
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
+// Splash screen API
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // System UI controller
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
 
     // Debugging tools for Compose
     debugImplementation(libs.androidx.ui.tooling)

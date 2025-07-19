@@ -1,52 +1,99 @@
-package com.example.carcare.app
+/*package com.example.carcare
 
-import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.example.carcare.Screens.*
-import com.example.carcare.navigation.Router
-import com.example.carcare.navigation.Screen
-import com.example.carcare.screens.*
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.carcare.Screens.ForgotPasswordScreen
+import com.example.carcare.Screens.LoginScreen
+import com.example.carcare.Screens.SignupScreen
+import com.example.carcare.ui.theme.PrimaryPurple
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun CarCareapp() {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White
-    ) {
-        Crossfade(targetState = Router.currentScreen) { screen ->
-            when (screen) {
-                is Screen.LoginScreen -> LoginScreen()
-                is Screen.Signup -> SignupScreen()
-                is Screen.TermsAndConditionsScreen -> TermsAndConditionsScreen()
-                is Screen.ForgetPasswordScreen -> ForgetPasswordScreen {
-                    Router.navigateTo(Screen.LoginScreen)
-                }
-                is Screen.HomeScreen -> HomeScreen()
-                is Screen.NotificationsScreen -> NotificationsScreen()
-                is Screen.EmergencyHelpScreen -> EmergencyHelpScreen()
-                is Screen.ProfileScreen -> ProfileScreen()
-                is Screen.RemindersScreen -> RemindersScreen()
-                is Screen.VehiclesScreen -> VehiclesScreen()
+    val navController = rememberNavController()
+    var showSplash by remember { mutableStateOf(true) }
 
-                is Screen.MaintenanceScreenWithVehicle -> MaintenanceScreen(vehicleId = screen.vehicleId)
-                is Screen.MaintenanceLogScreenWithVehicle -> MaintenanceLogScreen(vehicleId = screen.vehicleId)
-                is Screen.MaintenanceLogScreenWithCategory -> MaintenanceLogScreen(
-                    vehicleId = screen.vehicleId,
-                    selectedCategory = screen.category
+    // Check auth state
+    LaunchedEffect(Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            navController.navigate("dashboard")
+        } else {
+            navController.navigate("login")
+        }
+        showSplash = false
+    }
+
+    if (showSplash) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(PrimaryPurple),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "Car Care",
+                color = Color.White,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    } else {
+        NavHost(
+            navController = navController,
+            startDestination = "login"
+        ) {
+            composable("login") {
+                LoginScreen(
+                    onLoginSuccess = { navController.navigate("dashboard") },
+                    onSignupClick = { navController.navigate("signup") },
+                    onForgotPasswordClick = { navController.navigate("forgot_password") }
                 )
-                is Screen.MaintenanceFormScreenWithVehicle -> MaintenanceFormScreen(
-                    vehicleId = screen.vehicleId,
-                    recordId = screen.recordId
+            }
+
+            composable("signup") {
+                SignupScreen(
+                    onSignupSuccess = { navController.navigate("vehicle_registration") },
+                    onLoginClick = { navController.popBackStack() }
                 )
-                else -> {
-                    Text("Unknown screen: ${screen::class.simpleName}", color = Color.Red)
+            }
+
+            composable("forgot_password") {
+                ForgotPasswordScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onSuccess = { navController.popBackStack() }
+                )
+            }
+
+            composable("vehicle_registration") {
+                // Placeholder for vehicle registration
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text("Vehicle Registration Screen")
+                }
+            }
+
+            composable("dashboard") {
+                // Placeholder for dashboard
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text("Dashboard Screen")
                 }
             }
         }
     }
-}
+}*/
