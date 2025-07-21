@@ -1,16 +1,17 @@
 package com.example.carcare.viewmodels
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class VehicleDashboardState(
     val vehicles: List<VehicleItem> = emptyList(),
-    val isLoading: Boolean = false,
+    val upcomingReminder: MaintenanceReminderItem? = null,
+    val isLoading: Boolean = true,
     val error: String? = null
 )
 
@@ -21,24 +22,42 @@ data class VehicleItem(
     val mileage: String = ""
 )
 
+data class MaintenanceReminderItem(
+    val vehicleId: String,
+    val logId: String,
+    val type: String,
+    val dueDate: String,
+    val date: String = "",
+)
+
 class VehicleDashboardViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(VehicleDashboardState(isLoading = true))
+    private val _state = MutableStateFlow(VehicleDashboardState())
     val state: StateFlow<VehicleDashboardState> = _state
 
+    private val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    private val db = FirebaseFirestore.getInstance()
+
     init {
-        loadVehicles()
+        listenToVehicles()
     }
 
-    private fun loadVehicles() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    private fun listenToVehicles() {
+        if (uid.isEmpty()) return
+        _state.value = _state.value.copy(isLoading = true)
 
-        FirebaseFirestore.getInstance()
-            .collection("users")
+        db.collection("users")
             .document(uid)
             .collection("vehicles")
-            .get()
-            .addOnSuccessListener { snapshot ->
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = error?.message ?: "Unknown error"
+                    )
+                    return@addSnapshotListener
+                }
+
                 val vehicles = snapshot.documents.mapNotNull { doc ->
                     val make = doc.getString("make") ?: return@mapNotNull null
                     val model = doc.getString("model") ?: ""
@@ -50,10 +69,57 @@ class VehicleDashboardViewModel : ViewModel() {
                         mileage = mileage
                     )
                 }
-                _state.value = VehicleDashboardState(vehicles = vehicles)
+
+                _state.value = _state.value.copy(vehicles = vehicles, isLoading = false)
+                fetchUpcomingReminder(vehicles)
             }
-            .addOnFailureListener {
-                _state.value = VehicleDashboardState(error = "Failed to load vehicles")
-            }
+    }
+
+    private fun fetchUpcomingReminder(vehicles: List<VehicleItem>) {
+        if (uid.isEmpty()) return
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val now = Date()
+        var soonest: MaintenanceReminderItem? = null
+
+        for (vehicle in vehicles) {
+            db.collection("users")
+                .document(uid)
+                .collection("vehicles")
+                .document(vehicle.id)
+                .collection("maintenance")
+                .addSnapshotListener { logs, _ ->
+                    logs?.documents?.forEach { doc ->
+                        val type = doc.getString("type") ?: return@forEach
+                        val dateStr = doc.getString("date") ?: return@forEach
+                        val reminderType = doc.getString("reminderType") ?: return@forEach
+                        val reminderValue = doc.getString("reminderValue") ?: return@forEach
+
+                        if (reminderType.lowercase() == "time") {
+                            try {
+                                val baseDate = sdf.parse(dateStr) ?: return@forEach
+                                val days = reminderValue.toIntOrNull() ?: return@forEach
+                                val dueDate = Calendar.getInstance().apply {
+                                    time = baseDate
+                                    add(Calendar.DAY_OF_YEAR, days)
+                                }.time
+
+                                if (dueDate.after(now)) {
+                                    if (soonest == null || dueDate.before(sdf.parse(soonest!!.dueDate))) {
+                                        soonest = MaintenanceReminderItem(
+                                            vehicleId = vehicle.id,
+                                            logId = doc.id,
+                                            type = type,
+                                            dueDate = sdf.format(dueDate)
+                                        )
+                                        _state.value = _state.value.copy(upcomingReminder = soonest)
+                                    }
+                                }
+                            } catch (_: Exception) {
+                            }
+                        }
+                    }
+                }
+        }
     }
 }

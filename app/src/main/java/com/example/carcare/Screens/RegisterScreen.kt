@@ -117,7 +117,7 @@ fun RegisterScreen(navController: NavController) {
                                             "Verification email sent. Check your inbox.",
                                             Toast.LENGTH_LONG
                                         ).show()
-                                        navController.navigate(Screen.Login.route) {
+                                        navController.navigate(Screen.VehicleRegistration.route) {
                                             popUpTo(Screen.Register.route) { inclusive = true }
                                         }
                                     } else {

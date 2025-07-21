@@ -58,6 +58,28 @@ fun DashboardScreen(navController: NavController) {
 
             VehicleCarousel()
 
+            // ✅ Upcoming Maintenance Card
+            state.upcomingReminder?.let { reminder ->
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            navController.navigate(Screen.Maintenance.withVehicleId(reminder.vehicleId))
+                        },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("🔔 Upcoming Maintenance", fontWeight = FontWeight.Bold)
+                        Text("${reminder.type} due on ${reminder.dueDate}")
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
             Text("Quick Access", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(8.dp))
