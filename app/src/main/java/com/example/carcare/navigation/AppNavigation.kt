@@ -1,90 +1,87 @@
 package com.example.carcare.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
-import com.carcare.Screens.*
+import com.carcare.Screens.ForgotPasswordScreen
+import com.carcare.Screens.LoginScreen
+import com.carcare.Screens.RegisterScreen
 import com.carcare.navigation.Screen
 import com.example.carcare.Screens.*
+import com.example.carcare.ui.theme.*
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Splash.route
-    ) {
-        composable(Screen.Splash.route) {
-            SplashScreen(navController)
-        }
+    NavHost(navController = navController, startDestination = Screen.Splash.route) {
 
-        composable(Screen.Login.route) {
-            LoginScreen(navController)
-        }
+        composable(Screen.Splash.route) { SplashScreen(navController) }
+        composable(Screen.Login.route) { LoginScreen(navController) }
+        composable(Screen.Register.route) { RegisterScreen(navController) }
+        composable(Screen.Forgot.route) { ForgotPasswordScreen(navController) }
+        composable(Screen.VehicleRegistration.route) { VehicleRegistrationScreen(navController) }
+        composable(Screen.Dashboard.route) { DashboardScreen(navController) }
+        composable(Screen.Emergency.route) { EmergencyScreen(navController) }
+        composable(Screen.Profile.route) { ProfileScreen(navController) }
 
-        composable(Screen.Register.route) {
-            RegisterScreen(navController)
-        }
-
-        composable(Screen.VehicleRegistration.route) {
-            VehicleRegistrationScreen(navController)
-        }
-
-        composable(Screen.Dashboard.route) {
-            DashboardScreen(navController)
-        }
-
+        // 🚗 Maintenance Logs List
         composable(
-            route = "maintenance/{vehicleId}",
-            arguments = listOf(navArgument("vehicleId") {
-                type = NavType.StringType
-            })
+            route = Screen.Maintenance.route,
+            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
         ) { backStackEntry ->
             val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: return@composable
             MaintenanceScreen(navController, vehicleId)
         }
 
+        // 🛠️ Add / Edit Maintenance
         composable(
-            route = "add_maintenance/{vehicleId}?editId={editId}",
+            route = "add_maintenance?vehicleId={vehicleId}&editId={editId}",
             arguments = listOf(
-                navArgument("vehicleId") { type = NavType.StringType },
-                navArgument("editId") {
+                navArgument("vehicleId") {
                     type = NavType.StringType
                     defaultValue = ""
+                },
+                navArgument("editId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
-            AddMaintenanceScreen(navController, backStackEntry)
+            val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
+            val editId = backStackEntry.arguments?.getString("editId")
+            AddMaintenanceScreen(navController, vehicleId, editId)
         }
 
+        // 📋 Maintenance Log Detail
         composable(
-            route = "fuel/{vehicleId}",
-            arguments = listOf(navArgument("vehicleId") {
-                type = NavType.StringType
-            })
+            route = Screen.LogDetail.route,
+            arguments = listOf(
+                navArgument("vehicleId") { type = NavType.StringType },
+                navArgument("logId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: return@composable
+            val logId = backStackEntry.arguments?.getString("logId") ?: return@composable
+            LogDetailScreen(navController, vehicleId, logId)
+        }
+
+        // ⛽ Fuel Logs
+        composable(
+            route = Screen.FuelLog.route,
+            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
         ) { backStackEntry ->
             val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: return@composable
             FuelLogScreen(navController, vehicleId)
         }
 
+        // ➕ Add Fuel Log
         composable(
-            route = "add_fuel/{vehicleId}",
-            arguments = listOf(navArgument("vehicleId") {
-                type = NavType.StringType
-            })
+            route = Screen.AddFuelLog.route,
+            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
         ) { backStackEntry ->
             val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: return@composable
-            AddFuelLogScreen(navController, backStackEntry)
-        }
-
-        composable(Screen.Emergency.route) {
-            EmergencyScreen(navController)
-        }
-
-        composable(Screen.Profile.route) {
-            ProfileScreen(navController)
+            AddFuelLogScreen(navController, vehicleId)
         }
     }
 }

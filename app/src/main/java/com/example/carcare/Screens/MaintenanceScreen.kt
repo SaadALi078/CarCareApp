@@ -9,16 +9,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.carcare.navigation.Screen
 import com.example.carcare.R
 import com.example.carcare.data.model.MaintenanceLog
 import com.example.carcare.viewmodels.MaintenanceViewModel
@@ -41,7 +41,7 @@ fun MaintenanceScreen(navController: NavController, vehicleId: String) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(Screen.AddMaintenance.route + "?vehicleId=$vehicleId")
+                    navController.navigate("add_maintenance?vehicleId=$vehicleId")
                 },
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ) {
@@ -70,7 +70,7 @@ fun MaintenanceScreen(navController: NavController, vehicleId: String) {
                     MaintenanceCard(
                         log = log,
                         onClick = {
-                            navController.navigate("${Screen.LogDetail.route}/${vehicleId}/${log.id}")
+                            navController.navigate("add_maintenance?vehicleId=$vehicleId&editId=${log.id}")
                         },
                         onDelete = {
                             viewModel.deleteLog(vehicleId, log.id)
@@ -87,8 +87,7 @@ fun MaintenanceCard(log: MaintenanceLog, onClick: () -> Unit, onDelete: () -> Un
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -101,7 +100,16 @@ fun MaintenanceCard(log: MaintenanceLog, onClick: () -> Unit, onDelete: () -> Un
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(log.type, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(log.date, style = MaterialTheme.typography.labelSmall)
+
+                // ✏️ Edit Icon
+                IconButton(onClick = onClick) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                }
+
+                // 🗑️ Delete Icon
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -111,6 +119,8 @@ fun MaintenanceCard(log: MaintenanceLog, onClick: () -> Unit, onDelete: () -> Un
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("Notes: ${log.notes}", style = MaterialTheme.typography.bodySmall)
             }
+
+            Text(log.date, style = MaterialTheme.typography.labelSmall)
         }
     }
 }

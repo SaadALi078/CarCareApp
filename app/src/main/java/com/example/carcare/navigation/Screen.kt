@@ -1,7 +1,5 @@
 package com.carcare.navigation
 
-
-
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Login : Screen("login")
@@ -10,26 +8,28 @@ sealed class Screen(val route: String) {
     object VehicleRegistration : Screen("vehicle_registration")
     object Dashboard : Screen("dashboard")
 
-    object Maintenance : Screen("maintenance") {
+    object Maintenance : Screen("maintenance/{vehicleId}") {
         fun withVehicleId(vehicleId: String) = "maintenance/$vehicleId"
     }
 
-    object AddMaintenance : Screen("add_maintenance")
-    object LogDetail : Screen("log_detail")
+    object AddMaintenance : Screen("add_maintenance?vehicleId={vehicleId}&editId={editId}") {
+        fun withArgs(vehicleId: String, editId: String? = null): String {
+            return "add_maintenance?vehicleId=$vehicleId" + if (editId != null) "&editId=$editId" else ""
+        }
+    }
 
+    object LogDetail : Screen("log_detail/{vehicleId}/{logId}") {
+        fun withArgs(vehicleId: String, logId: String): String = "log_detail/$vehicleId/$logId"
+    }
 
     object Emergency : Screen("emergency")
     object Profile : Screen("profile")
-    object Fuel : Screen("fuel?vehicleId={vehicleId}") {
-        fun withVehicleId(id: String) = "fuel?vehicleId=$id"
-    }
-    object FuelLog : Screen("fuel") {
+
+    object FuelLog : Screen("fuel/{vehicleId}") {
         fun withVehicleId(id: String): String = "fuel/$id"
     }
 
-    object AddFuelLog : Screen("add_fuel_log?vehicleId={vehicleId}") {
-        fun withVehicleId(id: String) = "add_fuel_log?vehicleId=$id"
+    object AddFuelLog : Screen("add_fuel/{vehicleId}") {
+        fun withVehicleId(id: String) = "add_fuel/$id"
     }
-
 }
-

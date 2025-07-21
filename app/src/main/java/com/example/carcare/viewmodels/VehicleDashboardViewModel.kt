@@ -1,10 +1,15 @@
 package com.example.carcare.viewmodels
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +39,9 @@ class VehicleDashboardViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(VehicleDashboardState())
     val state: StateFlow<VehicleDashboardState> = _state
+
+    private val _fuelLogs = mutableStateListOf<FuelLog>()
+    val fuelLogs: List<FuelLog> get() = _fuelLogs
 
     private val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
     private val db = FirebaseFirestore.getInstance()
@@ -73,6 +81,104 @@ class VehicleDashboardViewModel : ViewModel() {
                 _state.value = _state.value.copy(vehicles = vehicles, isLoading = false)
                 fetchUpcomingReminder(vehicles)
             }
+    }
+
+    fun loadFuelLogs(vehicleId: String) {
+        if (uid.isEmpty()) return
+
+        viewModelScope.launch {
+            db.collection("users")
+                .document(uid)
+                .collection("vehicles")
+                .document(vehicleId)
+                .collection("fuel_logs")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    _fuelLogs.clear()
+                    snapshot.documents.forEach { doc ->
+                        val log = FuelLog(
+                            id = doc.id,
+                            vehicleId = vehicleId,
+                            amount = doc.getDouble("amount") ?: 0.0,
+                            cost = doc.getDouble("cost") ?: 0.0,
+                            date = doc.getString("date") ?: "",
+                            odometer = doc.getLong("odometer")?.toInt() ?: 0,
+                            notes = doc.getString("notes") ?: "",
+                            timestamp = doc.getTimestamp("timestamp") ?: Timestamp.now()
+                        )
+                        _fuelLogs.add(log)
+                    }
+                }
+                .addOnFailureListener {
+                    // Handle error
+                }
+        }
+    }
+    fun deleteFuelLog(vehicleId: String, logId: String) {
+        if (uid.isEmpty()) return
+
+        db.collection("users")
+            .document(uid)
+            .collection("vehicles")
+            .document(vehicleId)
+            .collection("fuel_logs")
+            .document(logId)
+            .delete()
+            .addOnSuccessListener {
+                _fuelLogs.removeAll { it.id == logId }
+            }
+    }
+
+    fun addFuelLog(
+        vehicleId: String,
+        amount: Double,
+        cost: Double,
+        date: String,
+        odometer: Int,
+        notes: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (uid.isEmpty()) return
+
+        viewModelScope.launch {
+            try {
+                val data = hashMapOf(
+                    "amount" to amount,
+                    "cost" to cost,
+                    "date" to date,
+                    "odometer" to odometer,
+                    "notes" to notes,
+                    "timestamp" to Timestamp.now()
+                )
+
+                db.collection("users")
+                    .document(uid)
+                    .collection("vehicles")
+                    .document(vehicleId)
+                    .collection("fuel_logs")
+                    .add(data)
+                    .addOnSuccessListener {
+                        _fuelLogs.add(
+                            FuelLog(
+                                id = it.id,
+                                vehicleId = vehicleId,
+                                amount = amount,
+                                cost = cost,
+                                date = date,
+                                odometer = odometer,
+                                notes = notes,
+                                timestamp = data["timestamp"] as Timestamp
+                            )
+                        )
+                        onSuccess()
+                    }
+                    .addOnFailureListener(onFailure)
+            } catch (e: Exception) {
+                onFailure(e)
+            }
+        }
     }
 
     private fun fetchUpcomingReminder(vehicles: List<VehicleItem>) {

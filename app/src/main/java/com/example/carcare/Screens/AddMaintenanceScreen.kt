@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.carcare.Screens
 
 import android.app.DatePickerDialog
@@ -27,21 +29,22 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMaintenanceScreen(
     navController: NavController,
-    backStackEntry: NavBackStackEntry
-) {
+    vehicleId: String,
+    editId: String?
+)
+ {
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-    val currentVehicleId = backStackEntry.arguments?.getString("vehicleId") ?: return
-    val editId = backStackEntry.arguments?.getString("editId")
+
     val isEditMode = editId != null
 
     val maintenanceTypes = listOf("Oil Change", "Tire Rotation", "Brake Check", "Battery Check", "General Service")
+
     var selectedType by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var mileageText by remember { mutableStateOf("") }
@@ -49,6 +52,7 @@ fun AddMaintenanceScreen(
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
 
+    // Date and Time Picker setup
     val calendar = Calendar.getInstance()
     val datePicker = DatePickerDialog(
         context,
@@ -59,7 +63,6 @@ fun AddMaintenanceScreen(
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
     )
-
     val timePicker = TimePickerDialog(
         context,
         { _, hour, minute ->
@@ -70,10 +73,11 @@ fun AddMaintenanceScreen(
         true
     )
 
+    // Load existing data for edit mode
     LaunchedEffect(editId) {
         if (isEditMode) {
             db.collection("users").document(uid)
-                .collection("vehicles").document(currentVehicleId)
+                .collection("vehicles").document(vehicleId)
                 .collection("maintenance").document(editId!!)
                 .get()
                 .addOnSuccessListener { doc ->
@@ -98,6 +102,7 @@ fun AddMaintenanceScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Maintenance Type Dropdown
             ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
                 OutlinedTextField(
                     readOnly = true,
@@ -120,6 +125,7 @@ fun AddMaintenanceScreen(
                 }
             }
 
+            // Date & Time Fields
             OutlinedTextField(
                 value = selectedDate,
                 onValueChange = {},
@@ -146,6 +152,7 @@ fun AddMaintenanceScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Mileage Input
             OutlinedTextField(
                 value = mileageText,
                 onValueChange = { mileageText = it },
@@ -154,6 +161,7 @@ fun AddMaintenanceScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Notes
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
@@ -161,6 +169,7 @@ fun AddMaintenanceScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Save Button
             Button(
                 onClick = {
                     val mileage = mileageText.toIntOrNull()
@@ -175,16 +184,16 @@ fun AddMaintenanceScreen(
                         "time" to selectedTime,
                         "mileage" to mileage,
                         "notes" to notes,
-                        "vehicleId" to currentVehicleId,
+                        "vehicleId" to vehicleId,
                         "timestamp" to Timestamp.now()
                     )
 
                     val logsRef = db.collection("users").document(uid)
-                        .collection("vehicles").document(currentVehicleId)
+                        .collection("vehicles").document(vehicleId)
                         .collection("maintenance")
 
-                    val onComplete: () -> Unit = {
-                        Toast.makeText(context, "Reminder scheduled", Toast.LENGTH_SHORT).show()
+                    val onComplete = {
+                        Toast.makeText(context, "Maintenance ${if (isEditMode) "updated" else "saved"}", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     }
 
@@ -194,7 +203,7 @@ fun AddMaintenanceScreen(
                         logsRef.add(data).addOnSuccessListener { onComplete() }
                     }
 
-                    // 🔔 Schedule Reminder
+                    // Reminder Scheduling
                     val delay = ReminderUtils.calculateDelayFromDateTime(selectedDate, selectedTime)
                     if (delay > 0L) {
                         val message = "Reminder: $selectedType on $selectedDate at $selectedTime"

@@ -22,11 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun LogDetailScreen(
-    navController: NavController,
-    logId: String,
-    vehicleId: String
-) {
+fun LogDetailScreen(navController: NavController, vehicleId: String, logId: String) {
     val context = LocalContext.current
     var log by remember { mutableStateOf<MaintenanceLog?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }

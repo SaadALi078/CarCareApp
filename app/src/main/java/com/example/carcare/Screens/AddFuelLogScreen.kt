@@ -2,8 +2,6 @@
 
 package com.example.carcare.Screens
 
-
-
 import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -17,20 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.Timestamp
+import com.example.carcare.viewmodels.VehicleDashboardViewModel
 import java.util.*
 
-
 @Composable
-fun AddFuelLogScreen(navController: NavController, backStackEntry: NavBackStackEntry)
- {
+fun AddFuelLogScreen(navController: NavController, vehicleId: String) {
     val context = LocalContext.current
-    val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: return
-    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    val viewModel: VehicleDashboardViewModel = viewModel()
 
     var amount by remember { mutableStateOf("") }
     var cost by remember { mutableStateOf("") }
@@ -41,18 +34,14 @@ fun AddFuelLogScreen(navController: NavController, backStackEntry: NavBackStackE
     val calendar = Calendar.getInstance()
     val datePicker = DatePickerDialog(
         context,
-        { _, year, month, day ->
-            date = "$day/${month + 1}/$year"
-        },
+        { _, year, month, day -> date = "$day/${month + 1}/$year" },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Add Fuel Log") })
-        }
+        topBar = { TopAppBar(title = { Text("Add Fuel Log") }) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -112,30 +101,25 @@ fun AddFuelLogScreen(navController: NavController, backStackEntry: NavBackStackE
                         return@Button
                     }
 
+                    val amountValue = amount.toDoubleOrNull() ?: 0.0
+                    val costValue = cost.toDoubleOrNull() ?: 0.0
+                    val odometerValue = odometer.toIntOrNull() ?: 0
 
-                    val db = FirebaseFirestore.getInstance()
-                    val data = mapOf(
-                        "amount" to amount,
-                        "cost" to cost,
-                        "date" to date,
-                        "odometer" to odometer,
-                        "notes" to notes,
-                        "timestamp" to Timestamp.now()
-                    )
-
-                    db.collection("users")
-                        .document(uid)
-                        .collection("vehicles")
-                        .document(vehicleId)
-                        .collection("fuel_logs")
-                        .add(data)
-                        .addOnSuccessListener {
-                            Toast.makeText(context, "Fuel log saved", Toast.LENGTH_SHORT).show()
+                    viewModel.addFuelLog(
+                        vehicleId = vehicleId,
+                        amount = amountValue,
+                        cost = costValue,
+                        date = date,
+                        odometer = odometerValue,
+                        notes = notes,
+                        onSuccess = {
                             navController.popBackStack()
+                            Toast.makeText(context, "Fuel log saved", Toast.LENGTH_SHORT).show()
+                        },
+                        onFailure = {
+                            Toast.makeText(context, "Failed to save: ${it.message}", Toast.LENGTH_SHORT).show()
                         }
-                        .addOnFailureListener {
-                            Toast.makeText(context, "Failed to save log", Toast.LENGTH_SHORT).show()
-                        }
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

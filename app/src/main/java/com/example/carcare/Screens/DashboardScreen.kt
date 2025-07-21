@@ -2,6 +2,7 @@
 
 package com.example.carcare.Screens
 
+import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +29,7 @@ import com.example.carcare.viewmodels.VehicleItem
 fun DashboardScreen(navController: NavController) {
     val viewModel: VehicleDashboardViewModel = viewModel()
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -57,6 +61,48 @@ fun DashboardScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
 
             VehicleCarousel()
+// Fuel Efficiency Card
+            viewModel.fuelLogs.takeIf { it.isNotEmpty() }?.let { logs ->
+
+            Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            state.vehicles.firstOrNull()?.id?.let { vehicleId ->
+                                navController.navigate("fuel/$vehicleId")
+                            } ?: run {
+                                Toast.makeText(context, "Add a vehicle first", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                ) {
+                    val (efficiency, costPerKm) = FuelEfficiencyCalculator.calculateEfficiency(logs)
+
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.LocalGasStation,
+                                contentDescription = "Fuel",
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Fuel Efficiency", fontWeight = FontWeight.Bold)
+                        }
+
+                        if (efficiency > 0) {
+                            Text("${"%.1f".format(efficiency)} km/L", fontSize = 20.sp)
+                            Text("${"%.1f".format(costPerKm)} PKR/km", fontSize = 16.sp)
+                        } else {
+                            Text("Add more logs to calculate", fontStyle = FontStyle.Italic)
+                        }
+                    }
+                }
+            }
 
             // ✅ Upcoming Maintenance Card
             state.upcomingReminder?.let { reminder ->
