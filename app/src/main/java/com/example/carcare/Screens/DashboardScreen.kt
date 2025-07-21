@@ -146,7 +146,8 @@ fun VehicleCard(vehicle: VehicleItem) {
 fun QuickAccessCards(navController: NavController, vehicleId: String?) {
     val cards = listOf(
         Triple("Maintenance", Icons.Default.Build, vehicleId?.let { Screen.Maintenance.withVehicleId(it) } ?: Screen.Dashboard.route),
-        Triple("Fuel Logs", Icons.Default.LocalGasStation, Screen.Fuel.route),
+        Triple("Fuel Logs", Icons.Default.LocalGasStation, vehicleId?.let { "fuel/$it" } ?: Screen.Dashboard.route),
+
         Triple("Emergency", Icons.Default.Warning, Screen.Emergency.route),
         Triple("Profile", Icons.Default.Person, Screen.Profile.route)
     )
@@ -193,7 +194,8 @@ fun BottomNavigationBar(navController: NavController, vehicleId: String?) {
     val items = listOf(
         Triple("Home", Icons.Default.Home, Screen.Dashboard.route),
         Triple("Maintenance", Icons.Default.Build, vehicleId?.let { Screen.Maintenance.withVehicleId(it) } ?: Screen.Dashboard.route),
-        Triple("Fuel", Icons.Default.LocalGasStation, Screen.Fuel.route),
+        Triple("Fuel Logs", Icons.Default.LocalGasStation, vehicleId?.let { "fuel/$it" } ?: Screen.Dashboard.route),
+
         Triple("Emergency", Icons.Default.Warning, Screen.Emergency.route),
         Triple("Profile", Icons.Default.Person, Screen.Profile.route)
     )
