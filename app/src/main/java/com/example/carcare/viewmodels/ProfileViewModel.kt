@@ -1,116 +1,112 @@
 package com.example.carcare.viewmodels
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val firestore = FirebaseFirestore.getInstance()
+
     private val _uiState = MutableStateFlow(ProfileUiState())
-    val uiState: StateFlow<ProfileUiState> = _uiState
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     private val _showLogoutDialog = MutableStateFlow(false)
-    val showLogoutDialog: StateFlow<Boolean> = _showLogoutDialog
+    val showLogoutDialog: StateFlow<Boolean> = _showLogoutDialog.asStateFlow()
 
     var tempName = ""
     var tempPhone = ""
 
     init {
         loadProfile()
-        loadSettings()
+        observeSettings()
     }
 
-    fun loadProfile() {
-        val uid = auth.currentUser?.uid ?: return
-        firestore.collection("users").document(uid).get().addOnSuccessListener { doc ->
-            _uiState.update {
-                it.copy(
-                    name = doc.getString("name") ?: "",
-                    email = doc.getString("email") ?: auth.currentUser?.email ?: "",
-                    phone = doc.getString("phone") ?: ""
-                )
-            }
-        }
-    }
-
-    fun loadSettings() {
-        val uid = auth.currentUser?.uid ?: return
-        val settingsRef = firestore.collection("settings").document(uid)
-
-        settingsRef.get().addOnSuccessListener { doc ->
-            if (doc.exists()) {
+    private fun observeSettings() {
+        viewModelScope.launch {
+            context.dataStore.data.collect { prefs ->
                 _uiState.update {
                     it.copy(
-                        maintenanceReminders = doc.getBoolean("maintenance_reminders") ?: true,
-                        fuelReminders = doc.getBoolean("fuel_reminders") ?: true,
-                        unitSystem = doc.getString("unit_system") ?: "metric",
-                        darkTheme = doc.getBoolean("dark_theme") ?: false
+                        maintenanceReminders = prefs[booleanPreferencesKey("maintenance_reminders")] ?: true,
+                        fuelReminders = prefs[booleanPreferencesKey("fuel_reminders")] ?: true,
+                        unitSystem = prefs[stringPreferencesKey("unit_system")] ?: "metric",
+                        darkTheme = prefs[booleanPreferencesKey("dark_theme")] ?: false
                     )
                 }
-            } else {
-                // Create default settings if not found
-                val defaultSettings = mapOf(
-                    "maintenance_reminders" to true,
-                    "fuel_reminders" to true,
-                    "unit_system" to "metric",
-                    "dark_theme" to false
-                )
-                settingsRef.set(defaultSettings)
             }
         }
     }
 
     fun updateSetting(key: String, value: Any) {
-        val uid = auth.currentUser?.uid ?: return
-        val settingsRef = firestore.collection("settings").document(uid)
-
-        settingsRef.update(key, value).addOnSuccessListener {
-            _uiState.update {
+        viewModelScope.launch {
+            context.dataStore.edit { settings ->
                 when (key) {
-                    "maintenance_reminders" -> it.copy(maintenanceReminders = value as Boolean)
-                    "fuel_reminders" -> it.copy(fuelReminders = value as Boolean)
-                    "unit_system" -> it.copy(unitSystem = value as String)
-                    "dark_theme" -> it.copy(darkTheme = value as Boolean)
-                    else -> it
+                    "maintenance_reminders" -> settings[booleanPreferencesKey(key)] = value as Boolean
+                    "fuel_reminders" -> settings[booleanPreferencesKey(key)] = value as Boolean
+                    "unit_system" -> settings[stringPreferencesKey(key)] = value as String
+                    "dark_theme" -> settings[booleanPreferencesKey(key)] = value as Boolean
                 }
             }
         }
     }
 
+    fun loadProfile() {
+        val user = auth.currentUser ?: return
+        firestore.collection("users").document(user.uid).get()
+            .addOnSuccessListener { doc ->
+                _uiState.update {
+                    it.copy(
+                        name = doc.getString("name") ?: "",
+                        email = user.email ?: "",
+                        phone = doc.getString("phone") ?: "",
+                        isLoading = false
+                    )
+                }
+            }
+    }
+
     fun toggleEditMode() {
-        _uiState.value = _uiState.value.copy(isEditing = true)
+        _uiState.update {
+            it.copy(isEditing = true)
+        }
         tempName = _uiState.value.name
         tempPhone = _uiState.value.phone
     }
 
     fun updateProfile() {
         val uid = auth.currentUser?.uid ?: return
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        _uiState.update { it.copy(isLoading = true) }
 
         firestore.collection("users").document(uid)
             .update(mapOf("name" to tempName, "phone" to tempPhone))
             .addOnSuccessListener {
-                _uiState.value = _uiState.value.copy(
-                    name = tempName,
-                    phone = tempPhone,
-                    isEditing = false,
-                    isLoading = false
-                )
+                _uiState.update {
+                    it.copy(
+                        name = tempName,
+                        phone = tempPhone,
+                        isEditing = false,
+                        isLoading = false
+                    )
+                }
             }
             .addOnFailureListener {
-                _uiState.value = _uiState.value.copy(isLoading = false)
+                _uiState.update { it.copy(isLoading = false) }
             }
     }
 
@@ -125,3 +121,15 @@ class ProfileViewModel @Inject constructor(
         _showLogoutDialog.value = show
     }
 }
+
+data class ProfileUiState(
+    val name: String = "",
+    val email: String = "",
+    val phone: String = "",
+    val isEditing: Boolean = false,
+    val isLoading: Boolean = true,
+    val maintenanceReminders: Boolean = true,
+    val fuelReminders: Boolean = true,
+    val unitSystem: String = "metric",
+    val darkTheme: Boolean = false
+)
