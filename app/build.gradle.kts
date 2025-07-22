@@ -61,7 +61,7 @@ dependencies {
 
     // Material 3 - use explicit version and only once
     implementation("androidx.compose.material3:material3:1.3.2")
-
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
     // Material icons (Material 2 icons)
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 

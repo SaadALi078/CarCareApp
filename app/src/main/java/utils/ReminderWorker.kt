@@ -6,57 +6,80 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.carcare.R
-import java.text.SimpleDateFormat
-import java.util.*
+import com.example.carcare.utils.SettingsKeys
+import com.example.carcare.utils.dataStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import java.util.Random
 
-class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
-    Worker(appContext, workerParams) {
+class ReminderWorker(
+    private val context: Context,
+    workerParams: WorkerParameters
+) : Worker(context, workerParams) {
 
     override fun doWork(): Result {
-        val message = inputData.getString("message") ?: return Result.failure()
-        val time = inputData.getString("time") ?: ""
+        try {
+            // Retrieve input data
+            val title = inputData.getString("title") ?: "Maintenance Reminder"
+            val message = inputData.getString("message") ?: "Your vehicle needs attention"
 
-        showNotification("$message at $time")
-        return Result.success()
-    }
-
-    private fun showNotification(message: String) {
-        val channelId = "maintenance_reminder_channel"
-        val context = applicationContext
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Maintenance Reminders"
-            val descriptionText = "Channel for maintenance reminder notifications"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(channelId, name, importance).apply {
-                description = descriptionText
+            // Check notification preferences
+            val showNotification = runBlocking {
+                context.dataStore.data.first()[booleanPreferencesKey(SettingsKeys.MAINTENANCE_REMINDERS)] ?: true
             }
 
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
+            if (!showNotification) {
+                return Result.success()
+            }
 
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_reminder)
-            .setContentTitle("Car Care Reminder")
+            // Show notification
+            showNotification(title, message)
+            return Result.success()
+        } catch (e: Exception) {
+            return Result.failure()
+        }
+    }
+
+    private fun showNotification(title: String, message: String) {
+        val channelId = "maintenance_reminders"
+        val notificationId = Random().nextInt()
+
+        // Create notification
+        val notification = NotificationCompat.Builder(applicationContext, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
             .build()
 
-        // ✅ Check permission before showing notification
+        val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Create notification channel for Android 8.0+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "Maintenance Reminders",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifications for vehicle maintenance reminders"
+            }
+            manager.createNotificationChannel(channel)
+        }
+
+        // Check notification permission
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            androidx.core.content.ContextCompat.checkSelfPermission(
-                context,
+            ContextCompat.checkSelfPermission(
+                applicationContext,
                 android.Manifest.permission.POST_NOTIFICATIONS
             ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         ) {
-            NotificationManagerCompat.from(context).notify(
-                System.currentTimeMillis().toInt(), notification
-            )
+            manager.notify(notificationId, notification)
         }
     }
 }

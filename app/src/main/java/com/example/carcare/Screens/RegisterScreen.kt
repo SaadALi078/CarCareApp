@@ -17,13 +17,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.carcare.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun RegisterScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
 
     var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -45,7 +48,17 @@ fun RegisterScreen(navController: NavController) {
             onValueChange = { name = it },
             label = { Text("Name") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions.Default,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Phone Number") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -94,7 +107,7 @@ fun RegisterScreen(navController: NavController) {
 
         Button(
             onClick = {
-                if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                if (name.isBlank() || phone.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
                     Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
@@ -108,6 +121,17 @@ fun RegisterScreen(navController: NavController) {
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            val uid = auth.currentUser?.uid
+                            if (uid != null) {
+                                val userData = mapOf(
+                                    "name" to name,
+                                    "phone" to phone
+                                )
+                                firestore.collection("users")
+                                    .document(uid)
+                                    .set(userData)
+                            }
+
                             auth.currentUser?.sendEmailVerification()
                                 ?.addOnCompleteListener { verifyTask ->
                                     loading = false

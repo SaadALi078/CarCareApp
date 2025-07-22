@@ -4,7 +4,7 @@
 
     <!-- Common -->
     <string name="save">Save</string>
-    <string name="cancel">Cancel</string>
+
     <string name="loading">Loading...</string>
 
     <!-- Auth -->
@@ -23,7 +23,23 @@
     <string name="mileage_hint">Current Mileage</string>
     <string name="save_vehicle">Save Vehicle</string>
     <string name="skip_for_now">Skip for Now</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="phone">Phone</string>
 
+    <string name="edit">Edit</string>
+    <string name="profile_settings">Profile &amp; Settings</string>
+    <string name="maintenance_reminders">Maintenance Reminders</string>
+    <string name="fuel_reminders">Fuel Reminders</string>
+    <string name="units">Units</string>
+    <string name="dark_theme">Dark Theme</string>
+    <string name="logout">Logout</string>
+    <string name="confirm_logout">Confirm Logout</string>
+    <string name="logout_confirmation">Are you sure you want to logout?</string>
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="metric_units">Metric (km, L)</string>
+    <string name="imperial_units">Imperial (miles, gal)</string>
     <!-- Maintenance -->
     <string name="maintenance_title">Maintenance Records</string>
     <string name="upcoming_maintenance">Upcoming Maintenance</string>
