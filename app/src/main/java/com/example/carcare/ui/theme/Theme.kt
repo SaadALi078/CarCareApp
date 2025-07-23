@@ -7,31 +7,51 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+// Premium Dark Theme
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF007AFF),           // Electric Blue
+    primaryContainer = Color(0xFF0A1128),  // Deep Sapphire
+    secondary = Color(0xFFFF0101),         // Porsche Red
+    secondaryContainer = Color(0xFFC0C0C0),// Titanium Silver
+    background = Color(0xFF121212),        // Space Black
+    surface = Color(0xFF1A1A1A),           // Onyx
+    onPrimary = Color(0xFFFFFFFF),         // Arctic White
+    onSecondary = Color(0xFFFFFFFF),       // Arctic White
+    onBackground = Color(0xFFE0E0E0),      // Platinum
+    onSurface = Color(0xFFE0E0E0),         // Platinum
+    error = Color(0xFFFF0101)              // Porsche Red
+)
+
+// Light Theme (for consistency)
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF0A1128),            // Deep Sapphire
+    primaryContainer = Color(0xFF007AFF),   // Electric Blue
+    secondary = Color(0xFFFF0101),          // Porsche Red
+    secondaryContainer = Color(0xFFF0F0F0), // Light Silver
+    background = Color(0xFFF5F5F7),         // Light Gray
+    surface = Color(0xFFFFFFFF),            // Pure White
+    onPrimary = Color(0xFFFFFFFF),          // Arctic White
+    onSecondary = Color(0xFFFFFFFF),        // Arctic White
+    onBackground = Color(0xFF121212),       // Space Black
+    onSurface = Color(0xFF1E1E1E),          // Carbon Fiber Gray
+    error = Color(0xFFD32F2F)               // Error Red
+)
+
 @Composable
 fun CarCareAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) {
-        darkColorScheme(
-            primary = Color(0xFF80CBC4),
-            onPrimary = Color.Black,
-            background = Color(0xFF121212),
-            surface = Color(0xFF1E1E1E),
-            onSurface = Color.White
-        )
-    } else {
-        lightColorScheme(
-            primary = Color(0xFF009688),
-            onPrimary = Color.White,
-            background = Color(0xFFFFFFFF),
-            surface = Color(0xFFF5F5F5),
-            onSurface = Color.Black
-        )
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = CarCareTypography,
         content = content
     )
 }
+
+// Optional Custom Colors
+val PremiumAccent = Color(0xFF00C853)         // Emerald (Success)
+val PremiumWarning = Color(0xFFFFC107)        // Amber (Warning)
+val PremiumSurfaceVariant = Color(0xFF2A2A2A) // Dark surface variant
