@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>WorkshopListSheet.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c792ea; font-style: italic;}
+.s1 { color: #c3cee3;}
+.s2 { color: #89ddff;}
+.s3 { color: #f78c6c;}
+.s4 { color: #c3e88d;}
+</style>
+</head>
+<body bgcolor="#263238">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+WorkshopListSheet.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">example</span><span class="s2">.</span><span class="s1">carcare</span><span class="s2">.</span><span class="s1">components</span>
+
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">background</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">clickable</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">LazyColumn</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">foundation</span><span class="s2">.</span><span class="s1">lazy</span><span class="s2">.</span><span class="s1">items</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">material3</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.</span><span class="s1">Composable</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">Modifier</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">graphics</span><span class="s2">.</span><span class="s1">Color</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">unit</span><span class="s2">.</span><span class="s1">dp</span>
+
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">WorkshopListSheet</span><span class="s2">(</span>
+    <span class="s1">workshops</span><span class="s2">: </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Workshop</span><span class="s2">&gt;,</span>
+    <span class="s1">onWorkshopSelected</span><span class="s2">: (</span><span class="s1">Workshop</span><span class="s2">) -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">modifier</span><span class="s2">: </span><span class="s1">Modifier </span><span class="s2">= </span><span class="s1">Modifier</span>
+<span class="s2">) {</span>
+    <span class="s1">Surface</span><span class="s2">(</span>
+        <span class="s1">modifier </span><span class="s2">= </span><span class="s1">modifier</span>
+            <span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()</span>
+            <span class="s2">.</span><span class="s1">wrapContentHeight</span><span class="s2">(),</span>
+        <span class="s1">tonalElevation </span><span class="s2">= </span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">,</span>
+        <span class="s1">shadowElevation </span><span class="s2">= </span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">,</span>
+        <span class="s1">shape </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">shapes</span><span class="s2">.</span><span class="s1">large</span><span class="s2">,</span>
+        <span class="s1">color </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">colorScheme</span><span class="s2">.</span><span class="s1">surface</span>
+    <span class="s2">) {</span>
+        <span class="s1">Column</span><span class="s2">(</span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)) {</span>
+            <span class="s1">Text</span><span class="s2">(</span>
+                <span class="s1">text </span><span class="s2">= </span><span class="s4">&quot;Nearby Mechanics&quot;</span><span class="s2">,</span>
+                <span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleMedium</span><span class="s2">,</span>
+                <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">8</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)</span>
+            <span class="s2">)</span>
+
+            <span class="s1">Divider</span><span class="s2">()</span>
+
+            <span class="s1">LazyColumn</span><span class="s2">(</span><span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span><span class="s2">.</span><span class="s1">fillMaxHeight</span><span class="s2">(</span><span class="s3">0.4f</span><span class="s2">)) {</span>
+                <span class="s1">items</span><span class="s2">(</span><span class="s1">workshops</span><span class="s2">) { </span><span class="s1">workshop </span><span class="s2">-&gt;</span>
+                    <span class="s1">Column</span><span class="s2">(</span>
+                        <span class="s1">modifier </span><span class="s2">= </span><span class="s1">Modifier</span>
+                            <span class="s2">.</span><span class="s1">fillMaxWidth</span><span class="s2">()</span>
+                            <span class="s2">.</span><span class="s1">clickable </span><span class="s2">{ </span><span class="s1">onWorkshopSelected</span><span class="s2">(</span><span class="s1">workshop</span><span class="s2">) }</span>
+                            <span class="s2">.</span><span class="s1">padding</span><span class="s2">(</span><span class="s3">12</span><span class="s2">.</span><span class="s1">dp</span><span class="s2">)</span>
+                    <span class="s2">) {</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">text </span><span class="s2">= </span><span class="s1">workshop</span><span class="s2">.</span><span class="s1">name</span><span class="s2">, </span><span class="s1">style </span><span class="s2">= </span><span class="s1">MaterialTheme</span><span class="s2">.</span><span class="s1">typography</span><span class="s2">.</span><span class="s1">titleSmall</span><span class="s2">)</span>
+                        <span class="s1">Text</span><span class="s2">(</span><span class="s1">text </span><span class="s2">= </span><span class="s4">&quot;⭐ </span><span class="s2">${</span><span class="s1">workshop</span><span class="s2">.</span><span class="s1">rating</span><span class="s2">} </span><span class="s4">• </span><span class="s2">${</span><span class="s1">workshop</span><span class="s2">.</span><span class="s1">distance</span><span class="s2">} </span><span class="s4">km away&quot;</span><span class="s2">)</span>
+                    <span class="s2">}</span>
+                    <span class="s1">Divider</span><span class="s2">()</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

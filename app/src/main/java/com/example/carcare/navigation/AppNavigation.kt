@@ -21,8 +21,13 @@ fun AppNavigation(navController: NavHostController) {
         composable(Screen.Forgot.route) { ForgotPasswordScreen(navController) }
         composable(Screen.VehicleRegistration.route) { VehicleRegistrationScreen(navController) }
         composable(Screen.Dashboard.route) { DashboardScreen(navController) }
-        composable(Screen.Emergency.route) { EmergencyScreen(navController) }
         composable(Screen.Profile.route) { ProfileScreen(navController) }
+
+        // 🆘 Emergency Map Screen with osmdroid (no permissions needed here)
+        composable(Screen.Emergency.route) {
+            EmergencyScreen(onBack = { navController.popBackStack() })
+        }
+
 
         // 🚗 Maintenance Logs List
         composable(

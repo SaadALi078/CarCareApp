@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>MapboxViewComposable.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #c792ea; font-style: italic;}
+.s1 { color: #c3cee3;}
+.s2 { color: #89ddff;}
+.s3 { color: #f78c6c;}
+.s4 { color: #c3e88d;}
+</style>
+</head>
+<body bgcolor="#263238">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MapboxViewComposable.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">example</span><span class="s2">.</span><span class="s1">carcare</span><span class="s2">.</span><span class="s1">components</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">graphics</span><span class="s2">.</span><span class="s1">BitmapFactory</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">location</span><span class="s2">.</span><span class="s1">Location</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">view</span><span class="s2">.</span><span class="s1">ViewGroup</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">runtime</span><span class="s2">.*</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">Modifier</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">platform</span><span class="s2">.</span><span class="s1">LocalContext</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">compose</span><span class="s2">.</span><span class="s1">ui</span><span class="s2">.</span><span class="s1">viewinterop</span><span class="s2">.</span><span class="s1">AndroidView</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">example</span><span class="s2">.</span><span class="s1">carcare</span><span class="s2">.</span><span class="s1">data</span><span class="s2">.</span><span class="s1">model</span><span class="s2">.</span><span class="s1">Workshop</span>
+<span class="s1">import org</span><span class="s2">.</span><span class="s1">maplibre</span><span class="s2">.</span><span class="s1">android</span><span class="s2">.</span><span class="s1">maps</span><span class="s2">.</span><span class="s1">MapInitOptions</span>
+<span class="s1">import org</span><span class="s2">.</span><span class="s1">maplibre</span><span class="s2">.</span><span class="s1">android</span><span class="s2">.</span><span class="s1">maps</span><span class="s2">.</span><span class="s1">MapView</span>
+<span class="s1">import org</span><span class="s2">.</span><span class="s1">maplibre</span><span class="s2">.</span><span class="s1">android</span><span class="s2">.</span><span class="s1">maps</span><span class="s2">.</span><span class="s1">Style</span>
+<span class="s1">import org</span><span class="s2">.</span><span class="s1">maplibre</span><span class="s2">.</span><span class="s1">android</span><span class="s2">.</span><span class="s1">camera</span><span class="s2">.</span><span class="s1">CameraOptions</span>
+<span class="s1">import org</span><span class="s2">.</span><span class="s1">maplibre</span><span class="s2">.</span><span class="s1">plugin</span><span class="s2">.</span><span class="s1">annotation</span><span class="s2">.</span><span class="s1">AnnotationConfig</span>
+<span class="s1">import org</span><span class="s2">.</span><span class="s1">maplibre</span><span class="s2">.</span><span class="s1">plugin</span><span class="s2">.</span><span class="s1">annotation</span><span class="s2">.</span><span class="s1">generated</span><span class="s2">.</span><span class="s1">PointAnnotationOptions</span>
+<span class="s1">import org</span><span class="s2">.</span><span class="s1">maplibre</span><span class="s2">.</span><span class="s1">geojson</span><span class="s2">.</span><span class="s1">Point</span>
+
+<span class="s1">@Composable</span>
+<span class="s0">fun </span><span class="s1">MapViewComposable</span><span class="s2">(</span>
+    <span class="s1">userLocation</span><span class="s2">: </span><span class="s1">Location</span><span class="s2">,</span>
+    <span class="s1">workshops</span><span class="s2">: </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Workshop</span><span class="s2">&gt;,</span>
+    <span class="s1">onMarkerClick</span><span class="s2">: (</span><span class="s1">Workshop</span><span class="s2">) -&gt; </span><span class="s1">Unit</span><span class="s2">,</span>
+    <span class="s1">modifier</span><span class="s2">: </span><span class="s1">Modifier </span><span class="s2">= </span><span class="s1">Modifier</span>
+<span class="s2">) {</span>
+    <span class="s0">val </span><span class="s1">context </span><span class="s2">= </span><span class="s1">LocalContext</span><span class="s2">.</span><span class="s1">current</span>
+    <span class="s0">val </span><span class="s1">workshopMap </span><span class="s2">= </span><span class="s1">remember </span><span class="s2">{ </span><span class="s1">mutableMapOf</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">Workshop</span><span class="s2">&gt;() }</span>
+
+    <span class="s1">AndroidView</span><span class="s2">(</span>
+        <span class="s1">modifier </span><span class="s2">= </span><span class="s1">modifier</span><span class="s2">,</span>
+        <span class="s1">factory </span><span class="s2">= {</span>
+            <span class="s0">val </span><span class="s1">mapView </span><span class="s2">= </span><span class="s1">MapView</span><span class="s2">(</span><span class="s1">context</span><span class="s2">, </span><span class="s1">MapInitOptions</span><span class="s2">(</span><span class="s1">context</span><span class="s2">)).</span><span class="s1">apply </span><span class="s2">{</span>
+                <span class="s1">layoutParams </span><span class="s2">= </span><span class="s1">ViewGroup</span><span class="s2">.</span><span class="s1">LayoutParams</span><span class="s2">(</span>
+                    <span class="s1">ViewGroup</span><span class="s2">.</span><span class="s1">LayoutParams</span><span class="s2">.</span><span class="s1">MATCH_PARENT</span><span class="s2">,</span>
+                    <span class="s1">ViewGroup</span><span class="s2">.</span><span class="s1">LayoutParams</span><span class="s2">.</span><span class="s1">MATCH_PARENT</span>
+                <span class="s2">)</span>
+            <span class="s2">}</span>
+
+            <span class="s1">mapView</span><span class="s2">.</span><span class="s1">getMapboxMap</span><span class="s2">().</span><span class="s1">loadStyleUri</span><span class="s2">(</span><span class="s1">Style</span><span class="s2">.</span><span class="s1">MAPBOX_STREETS</span><span class="s2">) {</span>
+                <span class="s0">val </span><span class="s1">camera </span><span class="s2">= </span><span class="s1">CameraOptions</span><span class="s2">.</span><span class="s1">Builder</span><span class="s2">()</span>
+                    <span class="s2">.</span><span class="s1">center</span><span class="s2">(</span><span class="s1">Point</span><span class="s2">.</span><span class="s1">fromLngLat</span><span class="s2">(</span><span class="s1">userLocation</span><span class="s2">.</span><span class="s1">longitude</span><span class="s2">, </span><span class="s1">userLocation</span><span class="s2">.</span><span class="s1">latitude</span><span class="s2">))</span>
+                    <span class="s2">.</span><span class="s1">zoom</span><span class="s2">(</span><span class="s3">14.0</span><span class="s2">)</span>
+                    <span class="s2">.</span><span class="s1">build</span><span class="s2">()</span>
+                <span class="s1">mapView</span><span class="s2">.</span><span class="s1">getMapboxMap</span><span class="s2">().</span><span class="s1">setCamera</span><span class="s2">(</span><span class="s1">camera</span><span class="s2">)</span>
+
+                <span class="s0">val </span><span class="s1">annotations </span><span class="s2">= </span><span class="s1">mapView</span><span class="s2">.</span><span class="s1">annotations</span>
+                <span class="s0">val </span><span class="s1">manager </span><span class="s2">= </span><span class="s1">annotations</span><span class="s2">.</span><span class="s1">createPointAnnotationManager</span><span class="s2">(</span><span class="s1">AnnotationConfig</span><span class="s2">())</span>
+
+                <span class="s0">val </span><span class="s1">icon </span><span class="s2">= </span><span class="s1">BitmapFactory</span><span class="s2">.</span><span class="s1">decodeStream</span><span class="s2">(</span><span class="s1">context</span><span class="s2">.</span><span class="s1">assets</span><span class="s2">.</span><span class="s1">open</span><span class="s2">(</span><span class="s4">&quot;pin.png&quot;</span><span class="s2">))</span>
+
+                <span class="s1">workshops</span><span class="s2">.</span><span class="s1">forEach </span><span class="s2">{ </span><span class="s1">shop </span><span class="s2">-&gt;</span>
+                    <span class="s0">val </span><span class="s1">point </span><span class="s2">= </span><span class="s1">Point</span><span class="s2">.</span><span class="s1">fromLngLat</span><span class="s2">(</span><span class="s1">shop</span><span class="s2">.</span><span class="s1">longitude</span><span class="s2">, </span><span class="s1">shop</span><span class="s2">.</span><span class="s1">latitude</span><span class="s2">)</span>
+                    <span class="s0">val </span><span class="s1">options </span><span class="s2">= </span><span class="s1">PointAnnotationOptions</span><span class="s2">()</span>
+                        <span class="s2">.</span><span class="s1">withPoint</span><span class="s2">(</span><span class="s1">point</span><span class="s2">)</span>
+                        <span class="s2">.</span><span class="s1">withIconImage</span><span class="s2">(</span><span class="s1">icon</span><span class="s2">)</span>
+
+                    <span class="s0">val </span><span class="s1">annotation </span><span class="s2">= </span><span class="s1">manager</span><span class="s2">.</span><span class="s1">create</span><span class="s2">(</span><span class="s1">options</span><span class="s2">)</span>
+                    <span class="s1">workshopMap</span><span class="s2">[</span><span class="s1">annotation</span><span class="s2">.</span><span class="s1">id</span><span class="s2">] = </span><span class="s1">shop</span>
+                <span class="s2">}</span>
+
+                <span class="s1">manager</span><span class="s2">.</span><span class="s1">addClickListener </span><span class="s2">{ </span><span class="s1">clicked </span><span class="s2">-&gt;</span>
+                    <span class="s1">workshopMap</span><span class="s2">[</span><span class="s1">clicked</span><span class="s2">.</span><span class="s1">id</span><span class="s2">]?.</span><span class="s1">let </span><span class="s2">{ </span><span class="s1">onMarkerClick</span><span class="s2">(</span><span class="s1">it</span><span class="s2">) }</span>
+                    <span class="s0">true</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+
+            <span class="s1">mapView</span>
+        <span class="s2">}</span>
+    <span class="s2">)</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

@@ -7,6 +7,7 @@ sealed class Screen(val route: String) {
     object Forgot : Screen("forgot")
     object VehicleRegistration : Screen("vehicle_registration")
     object Dashboard : Screen("dashboard")
+    object EmergencyScreen : Screen("emergency")
 
     object Maintenance : Screen("maintenance/{vehicleId}") {
         fun withVehicleId(vehicleId: String) = "maintenance/$vehicleId"

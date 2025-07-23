@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.carcare">
 
-    <!-- Required permissions -->
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -22,7 +23,7 @@
         android:theme="@style/Theme.CarCare"
         tools:targetApi="31">
 
-        <!-- Your main activity -->
+        <!-- Main Launcher -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,7 +35,14 @@
             </intent-filter>
         </activity>
 
-        <!-- Required for WorkManager to work reliably -->
+        <!-- Optional Mapbox Access Token (not required for OSM style) -->
+        <!--
+        <meta-data
+            android:name="com.mapbox.maps.token"
+            android:value="YOUR_MAPBOX_ACCESS_TOKEN_HERE" />
+        -->
+
+        <!-- WorkManager BOOT support -->
         <receiver
             android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
             android:exported="false">
