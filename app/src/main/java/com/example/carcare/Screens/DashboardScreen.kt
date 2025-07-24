@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.carcare.Screens // Corrected: Lowercase package name
+package com.example.carcare.Screens
 
 import android.widget.Toast
 import androidx.compose.animation.*
@@ -16,9 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
- // Corrected: Added M3 import
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,14 +27,13 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.carcare.navigation.Screen
 import com.example.carcare.R
 import com.example.carcare.ui.theme.*
@@ -47,7 +44,13 @@ import com.example.carcare.viewmodels.VehicleItem
 import kotlin.random.Random
 import androidx.compose.ui.graphics.vector.ImageVector
 
-// Note: This file should be located at: .../app/src/main/java/com/example/carcare/screens/DashboardScreen.kt
+// Premium color palette with harmonious blues and accents
+private val PremiumBlue = Color(0xFF1A2980)
+private val PremiumCyan = Color(0xFF26D0CE)
+private val CardBackground = Color(0xFF1E223C)
+private val CardBorder = Color(0xFF2A3A8C)
+private val AccentColor = Color(0xFF4A7BFF)  // Changed from green to a harmonious blue
+private val WarningColor = Color(0xFFFFA000)
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -60,7 +63,7 @@ fun DashboardScreen(navController: NavController) {
     )
 
     val topBarGradient = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1A2980), Color(0xFF26D0CE))
+        colors = listOf(PremiumBlue, PremiumCyan)
     )
 
     val contentAlpha = remember { Animatable(0f) }
@@ -83,20 +86,36 @@ fun DashboardScreen(navController: NavController) {
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
                             color = Color.White
-                        )
-                    )
+                        ),
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) // Missing parenthesis was here
                 },
                 navigationIcon = {
                     IconButton(onClick = { /* TODO: Drawer */ }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = "Menu",
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* Notifications */ }) {
                         BadgedBox(
-                            badge = { Badge(containerColor = PremiumWarning, modifier = Modifier.size(8.dp)) }
+                            badge = {
+                                Badge(
+                                    containerColor = WarningColor,
+                                    modifier = Modifier.size(8.dp)
+                                )
+                            }
                         ) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = Color.White)
+                            Icon(
+                                Icons.Default.Notifications,
+                                contentDescription = "Notifications",
+                                tint = Color.White,
+                                modifier = Modifier.size(26.dp)
+                            )
                         }
                     }
                 },
@@ -107,7 +126,6 @@ fun DashboardScreen(navController: NavController) {
                 scrollBehavior = scrollBehavior,
                 modifier = Modifier
                     .background(topBarGradient)
-                    .height(80.dp)
             )
         },
         bottomBar = {
@@ -146,11 +164,15 @@ fun DashboardScreen(navController: NavController) {
                         )
                         OutlinedButton(
                             onClick = { navController.navigate(Screen.VehicleRegistration.route) },
-                            border = BorderStroke(1.dp, PremiumAccent),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = PremiumAccent)
+                            border = BorderStroke(1.dp, AccentColor),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = AccentColor,
+                                containerColor = PremiumBlue.copy(alpha = 0.2f)
+                            ),
+                            modifier = Modifier.height(48.dp)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Add")
-                            Text("Add Vehicle", modifier = Modifier.padding(start = 4.dp))
+                            Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(20.dp))
+                            Text("Add Vehicle", modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                     VehicleCarousel(viewModel, navController)
@@ -186,7 +208,8 @@ fun DashboardScreen(navController: NavController) {
                         Icon(
                             Icons.Default.Dashboard,
                             contentDescription = "Quick Access",
-                            tint = Color.White.copy(alpha = 0.7f)
+                            tint = AccentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                     QuickAccessCards(navController, state.vehicles.firstOrNull()?.id)
@@ -200,11 +223,22 @@ fun DashboardScreen(navController: NavController) {
 @Composable
 fun ParticleBackground(particleCount: Int) {
     val particles = remember { List(particleCount) { Particle() } }
+    val infiniteTransition = rememberInfiniteTransition(label = "particle_anim")
+    val progress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing)
+        ),
+        label = "particle_progress"
+    )
+
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         particles.forEach { particle ->
-            particle.update(this.size)
+            particle.update(this.size, progress)
             drawCircle(
-                color = PremiumAccent.copy(alpha = particle.alpha),
+                color = AccentColor.copy(alpha = particle.alpha),
                 radius = particle.size,
                 center = particle.position
             )
@@ -231,7 +265,7 @@ private class Particle {
         life = Random.nextFloat() * 100
     }
 
-    fun update(screenSize: Size) {
+    fun update(screenSize: Size, progress: Float) {
         life += 1f
         position += velocity
         if (position.x !in 0f..screenSize.width || position.y !in 0f..screenSize.height || life > 200) {
@@ -244,10 +278,13 @@ private class Particle {
 fun VehicleCarousel(viewModel: VehicleDashboardViewModel, navController: NavController) {
     val state by viewModel.state.collectAsState()
     when {
-        state.isLoading -> Box(Modifier
-            .fillMaxWidth()
-            .height(200.dp), Alignment.Center) {
-            CircularProgressIndicator(color = PremiumAccent)
+        state.isLoading -> Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = AccentColor)
         }
         state.vehicles.isEmpty() -> Column(
             modifier = Modifier
@@ -272,7 +309,7 @@ fun VehicleCarousel(viewModel: VehicleDashboardViewModel, navController: NavCont
                 onClick = { navController.navigate(Screen.VehicleRegistration.route) },
                 modifier = Modifier.padding(top = 8.dp)
             ) {
-                Text("Add Your First Vehicle", color = PremiumAccent)
+                Text("Add Your First Vehicle", color = AccentColor)
             }
         }
         else -> LazyRow(
@@ -290,15 +327,23 @@ fun VehicleCarousel(viewModel: VehicleDashboardViewModel, navController: NavCont
 @Composable
 fun VehicleCard(vehicle: VehicleItem) {
     val borderGradient = Brush.horizontalGradient(
-        colors = listOf(PremiumAccent, PremiumAccent.copy(alpha = 0.5f))
+        colors = listOf(AccentColor, AccentColor.copy(alpha = 0.5f))
     )
+
+    val elevation by animateDpAsState(12.dp, label = "card_elevation")
+
     Card(
         modifier = Modifier
             .width(300.dp)
             .height(180.dp)
-            .shadow(24.dp, RoundedCornerShape(28.dp)),
+            .graphicsLayer {
+                shadowElevation = elevation.toPx()
+                shape = RoundedCornerShape(28.dp)
+                clip = true
+            }
+            .shadow(elevation, RoundedCornerShape(28.dp)),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E223C))
+        colors = CardDefaults.cardColors(containerColor = CardBackground)
     ) {
         Box(Modifier.fillMaxSize()) {
             Canvas(Modifier.matchParentSize()) {
@@ -306,7 +351,7 @@ fun VehicleCard(vehicle: VehicleItem) {
                 for (x in 0..(size.width / patternSize).toInt() + 1) {
                     for (y in 0..(size.height / patternSize).toInt() + 1) {
                         drawCircle(
-                            PremiumAccent.copy(alpha = 0.05f),
+                            AccentColor.copy(alpha = 0.05f),
                             2.dp.toPx(),
                             Offset(x * patternSize + patternSize / 2, y * patternSize + patternSize / 2)
                         )
@@ -329,7 +374,7 @@ fun VehicleCard(vehicle: VehicleItem) {
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .background(Brush.linearGradient(listOf(PremiumAccent, Color.Cyan)), CircleShape)
+                            .background(Brush.linearGradient(listOf(AccentColor, PremiumCyan)), CircleShape)
                             .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -338,7 +383,10 @@ fun VehicleCard(vehicle: VehicleItem) {
                     Spacer(Modifier.width(16.dp))
                     Text(
                         "${vehicle.make} ${vehicle.model}",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -358,7 +406,7 @@ fun VehicleCard(vehicle: VehicleItem) {
                             "${vehicle.mileage} km",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = PremiumAccent
+                            color = AccentColor
                         )
                     }
                     PulsingIndicator()
@@ -370,11 +418,15 @@ fun VehicleCard(vehicle: VehicleItem) {
 
 @Composable
 fun PulsingIndicator() {
-    val infiniteTransition = rememberInfiniteTransition("pulsing")
+    val infiniteTransition = rememberInfiniteTransition(label = "pulsing_indicator")
     val pulse by infiniteTransition.animateFloat(
-        0.8f, 1.2f,
-        infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Reverse),
-        "pulse"
+        initialValue = 0.8f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_animation"
     )
     Box(
         modifier = Modifier
@@ -383,55 +435,87 @@ fun PulsingIndicator() {
                 scaleX = pulse
                 scaleY = pulse
             }
-            .background(PremiumAccent, CircleShape)
+            .background(
+                brush = Brush.radialGradient(
+                    colors = listOf(AccentColor, AccentColor.copy(alpha = 0.7f))
+                ),
+                shape = CircleShape
+            )
     )
 }
 
 @Composable
 fun RowScope.FuelEfficiencyCard(logs: List<FuelLog>, vehicleId: String?, navController: NavController) {
-    // Corrected: Explicitly assign pair values to avoid ambiguity
     val result = calculateEfficiency(logs)
     val efficiency = result.first
     val costPerKm = result.second
 
-    val cardGradient = Brush.linearGradient(listOf(Color(0xFF1E223C), Color(0xFF2A2F4D)))
+    val cardGradient = Brush.linearGradient(listOf(CardBackground, Color(0xFF2A2F4D)))
     val context = LocalContext.current
+    val elevation by animateDpAsState(8.dp, label = "fuel_card_elevation")
 
     Card(
         modifier = Modifier
             .weight(1f)
             .clickable {
-                vehicleId?.let { navController.navigate("fuel/$it") } ?: Toast.makeText(
-                    context, "Add a vehicle first", Toast.LENGTH_SHORT
-                ).show()
-            },
+                vehicleId?.let { navController.navigate("fuel/$it") } ?: Toast
+                    .makeText(
+                        context, "Add a vehicle first", Toast.LENGTH_SHORT
+                    )
+                    .show()
+            }
+            .shadow(elevation, RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(1.dp, PremiumAccent.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, CardBorder)
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
             .background(cardGradient)) {
-            Column(Modifier.padding(20.dp), Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocalGasStation, "Fuel", tint = PremiumAccent, modifier = Modifier.size(24.dp))
+                    Icon(
+                        Icons.Default.LocalGasStation,
+                        "Fuel",
+                        tint = AccentColor,
+                        modifier = Modifier.size(28.dp))
                     Spacer(Modifier.width(12.dp))
                     Text(
                         "Fuel Efficiency",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, color = Color.White)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
                     )
                 }
                 if (efficiency > 0) {
-                    Box(Modifier
-                        .fillMaxWidth()
-                        .height(100.dp), Alignment.Center) {
-                        Box(Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFF252A42), RoundedCornerShape(16.dp)))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0x4D252A42),
+                                            Color(0x80252A42)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                        )
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 "%.1f".format(efficiency) + " km/L",
-                                style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                style = MaterialTheme.typography.displaySmall.copy(
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
                             )
                             Text(
                                 "%.1f".format(costPerKm) + " PKR/km",
@@ -441,9 +525,12 @@ fun RowScope.FuelEfficiencyCard(logs: List<FuelLog>, vehicleId: String?, navCont
                         }
                     }
                 } else {
-                    Box(Modifier
-                        .fillMaxWidth()
-                        .height(100.dp), Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
                             "Add more logs to calculate",
                             style = MaterialTheme.typography.bodyMedium,
@@ -451,6 +538,7 @@ fun RowScope.FuelEfficiencyCard(logs: List<FuelLog>, vehicleId: String?, navCont
                         )
                     }
                 }
+
             }
         }
     }
@@ -458,42 +546,64 @@ fun RowScope.FuelEfficiencyCard(logs: List<FuelLog>, vehicleId: String?, navCont
 
 @Composable
 fun RowScope.UpcomingMaintenanceCard(reminder: MaintenanceReminderItem, navController: NavController) {
-    val cardGradient = Brush.linearGradient(listOf(Color(0xFF1E223C), Color(0xFF2A2F4D)))
+    val cardGradient = Brush.linearGradient(listOf(CardBackground, Color(0xFF2A2F4D)))
+    val elevation by animateDpAsState(8.dp, label = "maintenance_card_elevation")
+
     Card(
         modifier = Modifier
             .weight(1f)
             .clickable {
                 navController.navigate(Screen.Maintenance.withVehicleId(reminder.vehicleId))
-            },
+            }
+            .shadow(elevation, RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(1.dp, PremiumAccent.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, CardBorder)
     ) {
         Box(Modifier
             .fillMaxSize()
             .background(cardGradient)) {
-            Column(Modifier.padding(20.dp), Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Build, "Maintenance", tint = PremiumWarning, modifier = Modifier.size(24.dp))
+                    Icon(
+                        Icons.Default.Build,
+                        "Maintenance",
+                        tint = WarningColor,
+                        modifier = Modifier.size(28.dp))
                     Spacer(Modifier.width(12.dp))
                     Text(
                         "Upcoming Maintenance",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, color = Color.White)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
                     )
                 }
-                Column(Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp), Arrangement.spacedBy(8.dp)) {
-                    Text(reminder.type, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Due on ${reminder.dueDate}", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        reminder.type,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        "Due on ${reminder.dueDate}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
                     LinearProgressIndicator(
                         progress = { 0.7f },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp)),
-                        color = PremiumWarning,
-                        trackColor = PremiumWarning.copy(alpha = 0.2f)
+                        color = WarningColor,
+                        trackColor = WarningColor.copy(alpha = 0.2f)
                     )
                     Text(
                         "7 days remaining",
@@ -515,13 +625,13 @@ fun QuickAccessCards(navController: NavController, vehicleId: String?) {
         Triple("Emergency", Icons.Default.Warning, Screen.Emergency.route),
         Triple("Profile", Icons.Default.Person, Screen.Profile.route)
     )
-    Column(Modifier.fillMaxWidth(), Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         cards.chunked(2).forEach { rowItems ->
-            Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 rowItems.forEach { item ->
                     QuickAccessCard(item.first, item.second, item.third, navController)
                 }
-                if (rowItems.size == 1) Spacer(Modifier.weight(1f))
+                if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
             }
         }
     }
@@ -531,38 +641,66 @@ fun QuickAccessCards(navController: NavController, vehicleId: String?) {
 fun RowScope.QuickAccessCard(label: String, icon: ImageVector, route: String, navController: NavController) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val elevation by animateDpAsState(if (isPressed) 4.dp else 12.dp, tween(100), "elevation")
+    val elevation by animateDpAsState(if (isPressed) 4.dp else 12.dp, label = "quick_access_elevation")
+
     Card(
         modifier = Modifier
             .weight(1f)
             .height(120.dp)
+            .graphicsLayer {
+                shadowElevation = elevation.toPx()
+            }
             .clickable(
                 interactionSource = interactionSource,
-                indication = LocalIndication.current,
+                indication = null,
                 onClick = { navController.navigate(route) }
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation), // Corrected: Use `defaultElevation`
-        border = BorderStroke(1.dp, PremiumAccent.copy(alpha = 0.3f))
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+        border = BorderStroke(1.dp, CardBorder)
     ) {
         Box(
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.linearGradient(listOf(Color(0xFF1E223C), Color(0xFF2A2F4D)))),
-            Alignment.Center
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(CardBackground, Color(0xFF2A2F4D))
+                    ),
+                    shape = RoundedCornerShape(24.dp)
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Box(
-                    Modifier
+                    modifier = Modifier
                         .size(48.dp)
-                        .background(Brush.radialGradient(listOf(PremiumAccent.copy(alpha = 0.4f), Color.Transparent)), CircleShape),
-                    Alignment.Center
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(AccentColor.copy(alpha = 0.4f), Color.Transparent)
+                            ),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = label, tint = PremiumAccent, modifier = Modifier.size(24.dp))
+                    Icon(
+                        icon,
+                        contentDescription = label,
+                        tint = AccentColor,
+                        modifier = Modifier.size(28.dp))
                 }
-                Spacer(Modifier.height(12.dp))
-                Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium, color = Color.White)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = Color.White
+                )
             }
         }
     }
@@ -573,34 +711,54 @@ fun BottomNavigationBar(navController: NavController, vehicleId: String?) {
     val items = listOf(
         Triple("Home", Icons.Default.Home, Screen.Dashboard.route),
         Triple("Maintenance", Icons.Default.Build, vehicleId?.let { Screen.Maintenance.withVehicleId(it) } ?: Screen.Dashboard.route),
-        Triple("Fuel Logs", Icons.Default.LocalGasStation, vehicleId?.let { "fuel/$it" } ?: Screen.Dashboard.route),
-        Triple("Emergency", Icons.Default.Warning, Screen.Emergency.route),
+        Triple("Fuel", Icons.Default.LocalGasStation, vehicleId?.let { "fuel/$it" } ?: Screen.Dashboard.route),
         Triple("Profile", Icons.Default.Person, Screen.Profile.route)
     )
     NavigationBar(
-        modifier = Modifier.shadow(16.dp),
-        containerColor = Color(0xFF1E223C),
+        modifier = Modifier
+            .shadow(16.dp)
+            .height(70.dp),
+        containerColor = CardBackground,
         tonalElevation = 8.dp
     ) {
+        val currentRoute by remember(navController) {
+            derivedStateOf { navController.currentBackStackEntry?.destination?.route }
+        }
         items.forEach { (label, icon, route) ->
             NavigationBarItem(
-                selected = false,
-                onClick = { navController.navigate(route) },
-                icon = { Icon(icon, contentDescription = label, modifier = Modifier.size(24.dp)) },
-                label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                selected = currentRoute == route,
+                onClick = {
+                    navController.navigate(route) {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                icon = {
+                    Icon(
+                        icon,
+                        contentDescription = label,
+                        modifier = Modifier.size(26.dp))
+                },
+                label = {
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1
+                    )
+                },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = PremiumAccent,
-                    selectedTextColor = PremiumAccent,
+                    selectedIconColor = AccentColor,
+                    selectedTextColor = AccentColor,
                     unselectedIconColor = Color.White.copy(alpha = 0.7f),
                     unselectedTextColor = Color.White.copy(alpha = 0.7f),
-                    indicatorColor = PremiumAccent.copy(alpha = 0.2f)
-                )
+                    indicatorColor = AccentColor.copy(alpha = 0.2f)
+                ),
+                modifier = Modifier.padding(vertical = 8.dp)
             )
         }
     }
 }
 
-// This function is local to DashboardScreen and now uses the correct property names
 private fun calculateEfficiency(logs: List<FuelLog>): Pair<Double, Double> {
     if (logs.size < 2) return 0.0 to 0.0
 
@@ -613,7 +771,6 @@ private fun calculateEfficiency(logs: List<FuelLog>): Pair<Double, Double> {
         val distance = (sortedLogs[i].odometer - sortedLogs[i - 1].odometer).toDouble()
         if (distance > 0) {
             totalDistance += distance
-            // Corrected: Use 'amount' and 'cost' from the FuelLog data class
             totalFuel += sortedLogs[i].amount
             totalCost += sortedLogs[i].cost
         }
