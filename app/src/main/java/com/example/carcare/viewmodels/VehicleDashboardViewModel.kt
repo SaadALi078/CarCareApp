@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Note: This file should be located at: .../app/src/main/java/com/example/carcare/viewmodels/VehicleDashboardViewModel.kt
+
 data class VehicleDashboardState(
     val vehicles: List<VehicleItem> = emptyList(),
     val upcomingReminder: MaintenanceReminderItem? = null,
@@ -80,6 +82,8 @@ class VehicleDashboardViewModel : ViewModel() {
 
                 _state.value = _state.value.copy(vehicles = vehicles, isLoading = false)
                 fetchUpcomingReminder(vehicles)
+                // Also load fuel logs for the first vehicle if available
+                vehicles.firstOrNull()?.id?.let { loadFuelLogs(it) }
             }
     }
 
@@ -95,23 +99,15 @@ class VehicleDashboardViewModel : ViewModel() {
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener { snapshot ->
-                    _fuelLogs.clear()
-                    snapshot.documents.forEach { doc ->
-                        val log = FuelLog(
-                            id = doc.id,
-                            vehicleId = vehicleId,
-                            amount = doc.getDouble("amount") ?: 0.0,
-                            cost = doc.getDouble("cost") ?: 0.0,
-                            date = doc.getString("date") ?: "",
-                            odometer = doc.getLong("odometer")?.toInt() ?: 0,
-                            notes = doc.getString("notes") ?: "",
-                            timestamp = doc.getTimestamp("timestamp") ?: Timestamp.now()
-                        )
-                        _fuelLogs.add(log)
+                    val newLogs = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(FuelLog::class.java)?.copy(id = doc.id)
                     }
+                    _fuelLogs.clear()
+                    _fuelLogs.addAll(newLogs)
                 }
                 .addOnFailureListener {
-                    // Handle error
+                    // Handle error, e.g., update state with an error message
+                    _state.value = _state.value.copy(error = it.message)
                 }
         }
     }
@@ -128,6 +124,9 @@ class VehicleDashboardViewModel : ViewModel() {
             .addOnSuccessListener {
                 _fuelLogs.removeAll { it.id == logId }
             }
+            .addOnFailureListener {
+                _state.value = _state.value.copy(error = it.message)
+            }
     }
 
     fun addFuelLog(
@@ -140,7 +139,10 @@ class VehicleDashboardViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
-        if (uid.isEmpty()) return
+        if (uid.isEmpty()) {
+            onFailure(Exception("User not logged in."))
+            return
+        }
 
         viewModelScope.launch {
             try {
@@ -159,19 +161,9 @@ class VehicleDashboardViewModel : ViewModel() {
                     .document(vehicleId)
                     .collection("fuel_logs")
                     .add(data)
-                    .addOnSuccessListener {
-                        _fuelLogs.add(
-                            FuelLog(
-                                id = it.id,
-                                vehicleId = vehicleId,
-                                amount = amount,
-                                cost = cost,
-                                date = date,
-                                odometer = odometer,
-                                notes = notes,
-                                timestamp = data["timestamp"] as Timestamp
-                            )
-                        )
+                    .addOnSuccessListener { docRef ->
+                        // Re-load logs to ensure sorted order
+                        loadFuelLogs(vehicleId)
                         onSuccess()
                     }
                     .addOnFailureListener(onFailure)
@@ -188,7 +180,7 @@ class VehicleDashboardViewModel : ViewModel() {
         val now = Date()
         var soonest: MaintenanceReminderItem? = null
 
-        for (vehicle in vehicles) {
+        vehicles.forEach { vehicle ->
             db.collection("users")
                 .document(uid)
                 .collection("vehicles")
@@ -201,7 +193,7 @@ class VehicleDashboardViewModel : ViewModel() {
                         val reminderType = doc.getString("reminderType") ?: return@forEach
                         val reminderValue = doc.getString("reminderValue") ?: return@forEach
 
-                        if (reminderType.lowercase() == "time") {
+                        if (reminderType.equals("time", ignoreCase = true)) {
                             try {
                                 val baseDate = sdf.parse(dateStr) ?: return@forEach
                                 val days = reminderValue.toIntOrNull() ?: return@forEach
@@ -211,7 +203,8 @@ class VehicleDashboardViewModel : ViewModel() {
                                 }.time
 
                                 if (dueDate.after(now)) {
-                                    if (soonest == null || dueDate.before(sdf.parse(soonest!!.dueDate))) {
+                                    val currentSoonestDueDate = soonest?.let { sdf.parse(it.dueDate) }
+                                    if (currentSoonestDueDate == null || dueDate.before(currentSoonestDueDate)) {
                                         soonest = MaintenanceReminderItem(
                                             vehicleId = vehicle.id,
                                             logId = doc.id,
@@ -222,6 +215,7 @@ class VehicleDashboardViewModel : ViewModel() {
                                     }
                                 }
                             } catch (_: Exception) {
+                                // Ignore parsing errors
                             }
                         }
                     }

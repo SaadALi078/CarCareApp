@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.carcare.navigation.Screen
 import com.example.carcare.R
-import com.example.carcare.ui.theme.PremiumAccent
+
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 

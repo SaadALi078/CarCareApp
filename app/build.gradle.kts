@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -43,6 +45,10 @@ android {
     buildFeatures {
         compose = true
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.11"
+    }
 }
 
 dependencies {
@@ -53,11 +59,15 @@ dependencies {
 
     // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
+
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.compose.material:material:1.6.1")
+
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
+    implementation("androidx.compose.foundation:foundation:1.7.0") // ✅ Added for rememberRipple
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
@@ -109,3 +119,4 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 }
+

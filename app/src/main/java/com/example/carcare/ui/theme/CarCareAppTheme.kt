@@ -18,7 +18,7 @@ val Montserrat = FontFamily(
 
 val CarCareTypography = Typography(
     displayLarge = TextStyle(
-        fontFamily = Montserrat,
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
         fontSize = 57.sp,
         lineHeight = 64.sp,
@@ -55,10 +55,10 @@ val CarCareTypography = Typography(
         lineHeight = 32.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = Montserrat,
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
-        lineHeight = 28.sp
+        letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontFamily = Montserrat,

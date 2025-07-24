@@ -36,6 +36,19 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1E1E1E),          // Carbon Fiber Gray
     error = Color(0xFFD32F2F)               // Error Red
 )
+val PremiumDarkColorPalette = darkColorScheme(
+    primary = Color(0xFF6C56E3),
+    primaryContainer = Color(0xFF0A1128),
+    secondary = Color(0xFFFF7BAC),
+    secondaryContainer = Color(0xFF2A2D3E),
+    background = Color(0xFF121212),
+    surface = Color(0xFF1E1E2A),
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color(0xFFE0E0E0),
+    onSurface = Color(0xFFC5C5D0)
+)
+
 
 @Composable
 fun CarCareAppTheme(

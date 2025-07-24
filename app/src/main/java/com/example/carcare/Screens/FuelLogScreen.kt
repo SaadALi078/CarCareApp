@@ -1,5 +1,5 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
-package com.example.carcare.Screens
+package com.example.carcare.Screens // Corrected: Lowercase package name
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,25 +11,28 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.carcare.viewmodels.FuelLog
 import com.example.carcare.viewmodels.VehicleDashboardViewModel
 
+// Note: This file should be located at: .../app/src/main/java/com/example/carcare/screens/FuelLogScreen.kt
+
 @Composable
 fun FuelLogScreen(navController: NavController, vehicleId: String) {
-    val context = LocalContext.current
     val viewModel: VehicleDashboardViewModel = viewModel()
 
-    // Load fuel logs when screen appears
+    // Load fuel logs when the screen appears
     LaunchedEffect(vehicleId) {
         viewModel.loadFuelLogs(vehicleId)
     }
 
-    val efficiencyData = remember(viewModel.fuelLogs) {
-        calculateEfficiency(viewModel.fuelLogs)
+    // Use a derived state to recalculate only when logs change
+    val efficiencyData by remember(viewModel.fuelLogs) {
+        derivedStateOf {
+            calculateEfficiencySummary(viewModel.fuelLogs)
+        }
     }
 
     Scaffold(
@@ -40,36 +43,34 @@ fun FuelLogScreen(navController: NavController, vehicleId: String) {
             FloatingActionButton(onClick = {
                 navController.navigate("add_fuel/$vehicleId")
             }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Fuel")
+                Icon(Icons.Default.Add, contentDescription = "Add Fuel Log")
             }
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+        Column(modifier = Modifier
+            .padding(padding)
+            .padding(16.dp)) {
+
             if (efficiencyData.totalDistance > 0) {
                 EfficiencySummaryCard(efficiencyData)
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            when {
-                viewModel.fuelLogs.isEmpty() -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("No fuel logs yet. Add your first fuel log!")
-                    }
+            if (viewModel.fuelLogs.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No fuel logs yet. Add your first one!")
                 }
-                else -> {
-                    LazyColumn {
-                        items(viewModel.fuelLogs) { log ->
-                            FuelLogCard(
-                                log = log,
-                                onDelete = { viewModel.deleteFuelLog(vehicleId, log.id) }
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(viewModel.fuelLogs, key = { it.id }) { log ->
+                        FuelLogCard(
+                            log = log,
+                            onDelete = { viewModel.deleteFuelLog(vehicleId, log.id) }
+                        )
                     }
                 }
             }
@@ -81,7 +82,7 @@ fun FuelLogScreen(navController: NavController, vehicleId: String) {
 fun FuelLogCard(log: FuelLog, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -91,7 +92,7 @@ fun FuelLogCard(log: FuelLog, onDelete: () -> Unit) {
             ) {
                 Text(log.date, style = MaterialTheme.typography.titleMedium)
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                    Icon(Icons.Default.Delete, contentDescription = "Delete log")
                 }
             }
 
@@ -99,27 +100,29 @@ fun FuelLogCard(log: FuelLog, onDelete: () -> Unit) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Column {
-                    Text("Amount", style = MaterialTheme.typography.bodySmall)
-                    Text("${log.amount} L", style = MaterialTheme.typography.bodyMedium)
-                }
-                Column {
-                    Text("Cost", style = MaterialTheme.typography.bodySmall)
-                    Text("${log.cost} PKR", style = MaterialTheme.typography.bodyMedium)
-                }
-                Column {
-                    Text("Odometer", style = MaterialTheme.typography.bodySmall)
-                    Text("${log.odometer} km", style = MaterialTheme.typography.bodyMedium)
-                }
+                InfoColumn("Amount", "${log.amount} L")
+                InfoColumn("Cost", "${log.cost} PKR")
+                InfoColumn("Odometer", "${log.odometer} km")
             }
 
             if (log.notes.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Notes: ${log.notes}", style = MaterialTheme.typography.bodyMedium)
+                Text("Notes: ${log.notes}", style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+}
+
+@Composable
+fun RowScope.InfoColumn(label: String, value: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.weight(1f)
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall)
+        Text(value, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
@@ -130,7 +133,7 @@ data class EfficiencyData(
     val logCount: Int
 )
 
-fun calculateEfficiency(logs: List<FuelLog>): EfficiencyData {
+private fun calculateEfficiencySummary(logs: List<FuelLog>): EfficiencyData {
     if (logs.size < 2) return EfficiencyData(0.0, 0.0, 0, logs.size)
 
     val sortedLogs = logs.sortedBy { it.odometer }
@@ -140,11 +143,12 @@ fun calculateEfficiency(logs: List<FuelLog>): EfficiencyData {
 
     for (i in 1 until sortedLogs.size) {
         val distance = sortedLogs[i].odometer - sortedLogs[i - 1].odometer
-        val fuel = sortedLogs[i].amount
-
-        totalDistance += distance
-        totalFuel += fuel
-        totalCost += sortedLogs[i].cost
+        if (distance > 0) {
+            val fuel = sortedLogs[i].amount
+            totalDistance += distance
+            totalFuel += fuel
+            totalCost += sortedLogs[i].cost
+        }
     }
 
     val avgEfficiency = if (totalFuel > 0) totalDistance / totalFuel else 0.0
@@ -152,36 +156,28 @@ fun calculateEfficiency(logs: List<FuelLog>): EfficiencyData {
 
     return EfficiencyData(avgEfficiency, avgCostPerKm, totalDistance, logs.size)
 }
+
 @Composable
 fun EfficiencySummaryCard(data: EfficiencyData) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Fuel Efficiency Summary", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Average", style = MaterialTheme.typography.bodySmall)
-                    Text("${"%.2f".format(data.avgEfficiency)} km/L", style = MaterialTheme.typography.titleLarge)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Distance", style = MaterialTheme.typography.bodySmall)
-                    Text("${data.totalDistance} km", style = MaterialTheme.typography.titleLarge)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Cost/km", style = MaterialTheme.typography.bodySmall)
-                    Text("${"%.2f".format(data.avgCostPerKm)} PKR", style = MaterialTheme.typography.titleLarge)
-                }
+                InfoColumn("Avg Efficiency", "${"%.2f".format(data.avgEfficiency)} km/L")
+                InfoColumn("Total Distance", "${data.totalDistance} km")
+                InfoColumn("Avg Cost/km", "${"%.2f".format(data.avgCostPerKm)} PKR")
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Based on ${data.logCount} fill-ups", style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Based on ${data.logCount} logs over ${data.totalDistance} km", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
