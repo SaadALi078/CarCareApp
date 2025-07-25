@@ -74,7 +74,13 @@ dependencies {
 
     // ViewModel Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
+// In your app-level build.gradle.kts (or build.gradle) file
 
+        // Retrofit for networking
+        implementation("com.squareup.retrofit2:retrofit:2.9.0")
+        implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Or another JSON parser
+        implementation("com.squareup.okhttp3:logging-interceptor:4.11.0") // Optional, for debugging
+   
     // Hilt
     implementation(libs.dagger.hilt)
     kapt(libs.dagger.hilt.compiler)

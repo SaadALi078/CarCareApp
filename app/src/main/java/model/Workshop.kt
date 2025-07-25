@@ -1,11 +1,13 @@
 package com.example.carcare.data.model
 
+// In your Workshop.kt or relevant data model file
 data class Workshop(
-    val id: String = "",
-    val name: String = "",
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
-    val phone: String = "",
-    val rating: Float = 0f,
-    val distanceKm: Float = 0f
+    val id: String,
+    val name: String,
+    val latitude: Double,
+    val longitude: Double,
+    val phone: String,
+    val rating: Float,
+    val distanceKm: Float,
+    val address: String // <-- Add this line
 )
