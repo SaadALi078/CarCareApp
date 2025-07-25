@@ -1,7 +1,6 @@
-package com.example.carcare.Screens
+package com.example.carcare.screens
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,7 +24,6 @@ import androidx.navigation.NavController
 import com.carcare.navigation.Screen
 import com.carcare.viewmodel.vehicle.VehicleFormEvent
 import com.example.carcare.R
-import com.example.carcare.ui.theme.PremiumAccent
 import com.example.carcare.ui.theme.PremiumSurfaceVariant
 import com.example.carcare.viewmodel.vehicle.VehicleViewModel
 

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.carcare.Screens
+package com.example.carcare.screens
 
 import android.widget.Toast
 import androidx.compose.animation.*
@@ -36,7 +36,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.carcare.navigation.Screen
 import com.example.carcare.R
-import com.example.carcare.ui.theme.*
 import com.example.carcare.viewmodels.FuelLog
 import com.example.carcare.viewmodels.MaintenanceReminderItem
 import com.example.carcare.viewmodels.VehicleDashboardViewModel
@@ -139,7 +138,7 @@ fun DashboardScreen(navController: NavController) {
                 .verticalScroll(scrollState)
                 .padding(paddingValues)
         ) {
-            ParticleBackground(particleCount = 30)
+            DashboardParticleBackground(particleCount = 30)
             AnimatedVisibility(
                 visible = true,
                 enter = fadeIn(animationSpec = tween(600)),
@@ -221,7 +220,7 @@ fun DashboardScreen(navController: NavController) {
 }
 
 @Composable
-fun ParticleBackground(particleCount: Int) {
+fun DashboardParticleBackground(particleCount: Int) {
     val particles = remember { List(particleCount) { Particle() } }
     val infiniteTransition = rememberInfiniteTransition(label = "particle_anim")
     val progress by infiniteTransition.animateFloat(

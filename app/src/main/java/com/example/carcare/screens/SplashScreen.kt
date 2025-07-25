@@ -1,4 +1,4 @@
-package com.example.carcare.Screens
+package com.example.carcare.screens
 
 import android.os.Handler
 import android.os.Looper

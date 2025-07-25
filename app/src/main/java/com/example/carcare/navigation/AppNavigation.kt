@@ -4,12 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.carcare.Screens.ForgotPasswordScreen
-import com.carcare.Screens.LoginScreen
-import com.carcare.Screens.RegisterScreen
+
 import com.carcare.navigation.Screen
-import com.example.carcare.Screens.*
-import com.example.carcare.ui.theme.*
+import com.carcare.screens.ForgotPasswordScreen
+import com.carcare.screens.LoginScreen
+import com.carcare.screens.RegisterScreen
+import com.example.carcare.screens.*
+
 
 @Composable
 fun AppNavigation(navController: NavHostController) {

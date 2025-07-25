@@ -1,4 +1,4 @@
-package com.carcare.Screens
+package com.carcare.screens
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility

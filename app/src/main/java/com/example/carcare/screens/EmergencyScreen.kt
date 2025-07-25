@@ -1,9 +1,8 @@
-package com.example.carcare.Screens
+package com.example.carcare.screens
 
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
-import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -17,7 +16,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.carcare.components.MapViewComposable
 import com.example.carcare.data.model.Workshop
 import com.example.carcare.viewmodels.EmergencyViewModel
-import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 
 @OptIn(ExperimentalMaterial3Api::class)
