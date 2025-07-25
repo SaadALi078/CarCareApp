@@ -2,30 +2,58 @@ package com.example.carcare.screens
 
 import android.widget.Toast
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.BrandingWatermark
+import androidx.compose.material.icons.filled.BrandingWatermark
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Rectangle
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.carcare.navigation.Screen
 import com.carcare.viewmodel.vehicle.VehicleFormEvent
 import com.example.carcare.R
-import com.example.carcare.ui.theme.PremiumSurfaceVariant
+
 import com.example.carcare.viewmodel.vehicle.VehicleViewModel
+
+// Premium color scheme
+private val DeepNavy = Color(0xFF0F0F1B)
+private val MidnightBlue = Color(0xFF1D1D2F)
+private val CeruleanFrost = Color(0xFF1A2980)
+private val AquaCyan = Color(0xFF26D0CE)
+private val PremiumAccent = Color(0xFF4A7BFF)
+private val GoldAccent = Color(0xFFFFD700)
+private val BackgroundGradient = Brush.verticalGradient(
+    colors = listOf(DeepNavy, MidnightBlue)
+)
+private val CardGradient = Brush.linearGradient(
+    colors = listOf(CeruleanFrost.copy(alpha = 0.2f), MidnightBlue.copy(alpha = 0.7f))
+)
+private val ButtonGradient = Brush.horizontalGradient(
+    colors = listOf(PremiumAccent, AquaCyan)
+)
 
 @Composable
 fun VehicleRegistrationScreen(
@@ -34,6 +62,15 @@ fun VehicleRegistrationScreen(
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
+    val infiniteTransition = rememberInfiniteTransition()
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
 
     LaunchedEffect(true) {
         viewModel.event.collect { event ->
@@ -56,155 +93,207 @@ fun VehicleRegistrationScreen(
         contentAlpha.animateTo(1f, animationSpec = tween(800))
     }
 
-    // Premium UI
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        MaterialTheme.colorScheme.background
-                    )
-                )
-            )
+            .background(BackgroundGradient)
     ) {
-        // Decorative car silhouette
+        // Decorative car silhouette with gradient effect
         Image(
             painter = painterResource(R.drawable.ic_car_silhouette),
             contentDescription = "Car Silhouette",
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .fillMaxWidth(0.8f)
-                .alpha(0.1f)
+                .alpha(0.08f),
+            colorFilter = ColorFilter.tint(PremiumAccent)
         )
 
-        // Main content card
+
+        // Main content card with glass effect
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)
                 .align(Alignment.Center)
-                .alpha(contentAlpha.value),
+                .alpha(contentAlpha.value)
+                .shadow(24.dp, RoundedCornerShape(32.dp), clip = true),
             shape = RoundedCornerShape(32.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = PremiumSurfaceVariant.copy(alpha = 0.9f)
-            ),
-            elevation = CardDefaults.cardElevation(12.dp)
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
         ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .fillMaxWidth()
+                    .background(
+                        brush = CardGradient,
+                        shape = RoundedCornerShape(32.dp))
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.horizontalGradient(listOf(PremiumAccent, AquaCyan)),
+                        shape = RoundedCornerShape(32.dp)
+                    )
+                    .padding(32.dp)
             ) {
-                // Header with icon
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.DirectionsCar,
-                        contentDescription = "Vehicle",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        "Register Your Vehicle",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Text(
-                    "Add your vehicle details to get started",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                // Premium form fields
-                PremiumVehicleField(
-                    label = "Make",
-                    value = state.make,
-                    onValueChange = { viewModel.onFieldChange("make", it) },
-                    iconRes = R.drawable.ic_make
-                )
-
-                PremiumVehicleField(
-                    label = "Model",
-                    value = state.model,
-                    onValueChange = { viewModel.onFieldChange("model", it) },
-                    iconRes = R.drawable.ic_model
-                )
-
-                PremiumVehicleField(
-                    label = "Year",
-                    value = state.year,
-                    onValueChange = { viewModel.onFieldChange("year", it) },
-                    keyboardType = KeyboardType.Number,
-                    iconRes = R.drawable.ic_calendar
-                )
-
-                PremiumVehicleField(
-                    label = "License Plate",
-                    value = state.plate,
-                    onValueChange = { viewModel.onFieldChange("plate", it) },
-                    iconRes = R.drawable.ic_plate
-                )
-
-                PremiumVehicleField(
-                    label = "Current Mileage",
-                    value = state.mileage,
-                    onValueChange = { viewModel.onFieldChange("mileage", it) },
-                    keyboardType = KeyboardType.Number,
-                    iconRes = R.drawable.ic_mileage
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Save button with loading state
-                Button(
-                    onClick = { viewModel.saveVehicle() },
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = !state.isLoading
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    } else {
+                    // Header with animated icon
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .graphicsLayer {
+                                scaleX = pulse
+                                scaleY = pulse
+                            }
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(
+                                    brush = Brush.radialGradient(
+                                        colors = listOf(PremiumAccent.copy(alpha = 0.2f), Color.Transparent)
+                                    ),
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    brush = Brush.radialGradient(
+                                        colors = listOf(PremiumAccent, PremiumAccent.copy(alpha = 0.3f))),
+                                    shape = CircleShape
+                                )
+                                .padding(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Filled.DirectionsCar,
+                                contentDescription = "Vehicle",
+                                tint = PremiumAccent,
+                                modifier = Modifier.size(28.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            "Save Vehicle",
-                            style = MaterialTheme.typography.labelLarge
+                            "Register Your Vehicle",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = PremiumAccent
+                            )
                         )
                     }
-                }
 
-                // Skip option
-                TextButton(
-                    onClick = {
-                        navController.navigate(Screen.Dashboard.route) {
-                            popUpTo(Screen.VehicleRegistration.route) { inclusive = true }
-                        }
-                    },
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
                     Text(
-                        "Skip for now",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        "Add your vehicle details to get started",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = Color.White.copy(alpha = 0.7f)
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
+
+                    // Premium form fields
+                    PremiumVehicleField(
+                        label = "Make",
+                        value = state.make,
+                        onValueChange = { viewModel.onFieldChange("make", it) },
+                        icon = Icons.Default.BrandingWatermark
+                    )
+
+                    PremiumVehicleField(
+                        label = "Model",
+                        value = state.model,
+                        onValueChange = { viewModel.onFieldChange("model", it) },
+                        icon = Icons.Default.DirectionsCar
+                    )
+
+                    PremiumVehicleField(
+                        label = "Year",
+                        value = state.year,
+                        onValueChange = { viewModel.onFieldChange("year", it) },
+                        keyboardType = KeyboardType.Number,
+                        icon = Icons.Default.Event
+                    )
+
+                    PremiumVehicleField(
+                        label = "License Plate",
+                        value = state.plate,
+                        onValueChange = { viewModel.onFieldChange("plate", it) },
+                        icon = Icons.Default.Rectangle
+                    )
+
+                    PremiumVehicleField(
+                        label = "Current Mileage",
+                        value = state.mileage,
+                        onValueChange = { viewModel.onFieldChange("mileage", it) },
+                        keyboardType = KeyboardType.Number,
+                        icon = Icons.Default.Speed
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Save button with loading state
+                    Button(
+                        onClick = { viewModel.saveVehicle() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .shadow(16.dp, RoundedCornerShape(16.dp), clip = true),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        border = BorderStroke(1.dp, PremiumAccent),
+                        shape = RoundedCornerShape(16.dp),
+                        enabled = !state.isLoading
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(ButtonGradient, RoundedCornerShape(16.dp))
+                        ) {
+                            if (state.isLoading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    strokeWidth = 2.dp,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else {
+                                Row(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = "Save",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        "SAVE VEHICLE",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Skip option
+                    TextButton(
+                        onClick = {
+                            navController.navigate(Screen.Dashboard.route) {
+                                popUpTo(Screen.VehicleRegistration.route) { inclusive = true }
+                            }
+                        },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(
+                            "Skip for now",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = PremiumAccent.copy(alpha = 0.7f)
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -219,40 +308,52 @@ fun PremiumVehicleField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
-    iconRes: Int? = null
+    icon: ImageVector
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = {
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = PremiumAccent,
+                modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                style = MaterialTheme.typography.labelLarge.copy(
+                    color = Color.White.copy(alpha = 0.8f))
             )
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-        ),
-        shape = RoundedCornerShape(16.dp),
-        leadingIcon = iconRes?.let {
-            {
-                Icon(
-                    painter = painterResource(it),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    modifier = Modifier.size(20.dp)
+        }
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MidnightBlue.copy(alpha = 0.4f),
+                unfocusedContainerColor = MidnightBlue.copy(alpha = 0.4f),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            ),
+            placeholder = {
+                Text(
+                    "Enter $label",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color.White.copy(alpha = 0.5f))
                 )
-            }
-        },
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-    )
+            },
+            shape = RoundedCornerShape(16.dp),
+            modifier = modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = PremiumAccent.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp))
+        )
+    }
 }
