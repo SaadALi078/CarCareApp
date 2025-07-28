@@ -1,18 +1,28 @@
 package com.carcare.screens
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -20,26 +30,50 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.carcare.navigation.Screen
+import com.example.carcare.Component.PremiumAccent
 import com.example.carcare.R
-
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+
+private val CeruleanFrost = Color(0xFF1A2980)
+private val MidnightBlue = Color(0xFF1D1D2F)
+private val AquaCyan = Color(0xFF26D0CE)
+private val ButtonGradient = Brush.horizontalGradient(
+    colors = listOf(PremiumAccent, AquaCyan)
+)
+private val BackgroundGradient = Brush.verticalGradient(
+    colors = listOf(MidnightBlue, Color.Black)
+)
 
 @Composable
 fun RegisterScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_animation"
+    )
 
-    // Form state
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -48,148 +82,164 @@ fun RegisterScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 
-    // Animation states
     val contentAlpha = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         contentAlpha.animateTo(1f, animationSpec = tween(800))
     }
 
-    // Premium UI
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(BackgroundGradient),
+        contentAlignment = Alignment.Center
     ) {
-        // Decorative background elements
-        Box(
+        // Added scroll state for smaller screens
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.primaryContainer
-                        )
-                    )
-                )
-        )
-
-        // Main content with smooth entrance animation
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn(animationSpec = tween(600)),
-            exit = fadeOut()
+                .padding(horizontal = 24.dp)
+                .graphicsLayer { alpha = contentAlpha.value }
+                .verticalScroll(rememberScrollState()), // To prevent overflow on small devices
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Card(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
-                    .align(Alignment.Center),
+                    .shadow(24.dp, RoundedCornerShape(32.dp)),
                 shape = RoundedCornerShape(32.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                ),
-                elevation = CardDefaults.cardElevation(8.dp)
+                color = Color.Transparent
             ) {
+                // ✨✨✨ MAJOR FIX: This Column now controls the entire form layout
                 Column(
                     modifier = Modifier
-                        .padding(32.dp)
-                        .alpha(contentAlpha.value),
-                    verticalArrangement = Arrangement.Center,
+                        .background(
+                            brush = Brush.verticalGradient(
+                                listOf(
+                                    CeruleanFrost.copy(alpha = 0.25f),
+                                    MidnightBlue.copy(alpha = 0.7f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(32.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.horizontalGradient(listOf(PremiumAccent, AquaCyan)),
+                            shape = RoundedCornerShape(32.dp)
+                        )
+                        .padding(horizontal = 24.dp, vertical = 32.dp), // Adjusted padding
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // App logo
-                    Image(
-                        painter = painterResource(R.drawable.ic_car_logo),
-                        contentDescription = "App Logo",
+                    Box(
                         modifier = Modifier
                             .size(80.dp)
-                            .padding(bottom = 16.dp)
-                    )
+                            .background(
+                                brush = Brush.radialGradient(
+                                    listOf(PremiumAccent.copy(alpha = 0.2f), Color.Transparent)
+                                ),
+                                shape = CircleShape
+                            )
+                            .border(
+                                width = 1.dp,
+                                brush = Brush.radialGradient(
+                                    listOf(PremiumAccent, PremiumAccent.copy(alpha = 0.3f))
+                                ),
+                                shape = CircleShape
+                            )
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_car_logo),
+                            contentDescription = "App Logo",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .alpha(0.9f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
                         "Create Account",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = PremiumAccent
+                        )
+                    )
+
+                    Text(
+                        "Join CarCare today",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = AquaCyan.copy(alpha = 0.8f)
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Form fields with modern styling
-                    PremiumTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = "Name",
-                        iconRes = R.drawable.ic_person
-                    )
+                    // ✨ FIX: This Column now uses Arrangement.spacedBy for compact spacing
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        GlassInputField(
+                            value = name,
+                            onValueChange = { name = it },
+                            label = "Full Name",
+                            placeholder = "Your name",
+                            icon = Icons.Default.Person
+                        )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        GlassInputField(
+                            value = phone,
+                            onValueChange = { phone = it },
+                            label = "Phone Number",
+                            placeholder = "Your phone number",
+                            icon = Icons.Default.Phone,
+                            keyboardType = KeyboardType.Phone
+                        )
 
-                    PremiumTextField(
-                        value = phone,
-                        onValueChange = { phone = it },
-                        label = "Phone Number",
-                        keyboardType = KeyboardType.Phone,
-                        iconRes = R.drawable.ic_phone
-                    )
+                        GlassInputField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = "Email Address",
+                            placeholder = "you@example.com",
+                            icon = Icons.Default.Email,
+                            keyboardType = KeyboardType.Email
+                        )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        GlassInputField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = "Password",
+                            placeholder = "Create a password",
+                            icon = Icons.Default.Lock,
+                            isPassword = true,
+                            passwordVisible = passwordVisible,
+                            onPasswordToggle = { passwordVisible = !passwordVisible }
+                        )
 
-                    PremiumTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = "Email",
-                        keyboardType = KeyboardType.Email,
-                        iconRes = R.drawable.ic_email
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    PremiumTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = "Password",
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = "Toggle Password Visibility",
-                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                )
-                            }
-                        },
-                        keyboardType = KeyboardType.Password,
-                        iconRes = R.drawable.ic_lock
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    PremiumTextField(
-                        value = confirmPassword,
-                        onValueChange = { confirmPassword = it },
-                        label = "Confirm Password",
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardType = KeyboardType.Password,
-                        iconRes = R.drawable.ic_lock
-                    )
+                        GlassInputField(
+                            value = confirmPassword,
+                            onValueChange = { confirmPassword = it },
+                            label = "Confirm Password",
+                            placeholder = "Confirm your password",
+                            icon = Icons.Default.Lock,
+                            isPassword = true,
+                            passwordVisible = passwordVisible,
+                            onPasswordToggle = { passwordVisible = !passwordVisible }
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Register button with animation
                     Button(
                         onClick = {
                             if (name.isBlank() || phone.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
                                 Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                                 return@Button
                             }
-
                             if (password != confirmPassword) {
                                 Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                                 return@Button
                             }
-
                             loading = true
                             auth.createUserWithEmailAndPassword(email, password)
                                 .addOnCompleteListener { task ->
@@ -200,62 +250,61 @@ fun RegisterScreen(navController: NavController) {
                                                 "name" to name,
                                                 "phone" to phone
                                             )
-                                            firestore.collection("users")
-                                                .document(uid)
-                                                .set(userData)
+                                            firestore.collection("users").document(uid).set(userData)
                                         }
-
                                         auth.currentUser?.sendEmailVerification()
                                             ?.addOnCompleteListener { verifyTask ->
                                                 loading = false
                                                 if (verifyTask.isSuccessful) {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Verification email sent. Check your inbox.",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                    navController.navigate(Screen.VehicleRegistration.route) {
+                                                    Toast.makeText(context, "Verification email sent. Check your inbox.", Toast.LENGTH_LONG).show()
+                                                    navController.navigate(Screen.Login.route) {
                                                         popUpTo(Screen.Register.route) { inclusive = true }
                                                     }
                                                 } else {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Failed to send verification: ${verifyTask.exception?.message}",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
+                                                    Toast.makeText(context, "Failed to send verification: ${verifyTask.exception?.message}", Toast.LENGTH_LONG).show()
                                                 }
                                             }
                                     } else {
                                         loading = false
-                                        Toast.makeText(
-                                            context,
-                                            "Registration failed: ${task.exception?.message}",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                        Toast.makeText(context, "Registration failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                                     }
                                 }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
+                            .height(56.dp)
+                            .graphicsLayer {
+                                scaleX = pulse
+                                scaleY = pulse
+                            }
+                            .shadow(16.dp, RoundedCornerShape(16.dp), clip = true),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        border = BorderStroke(1.dp, PremiumAccent),
                         shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(),
                         enabled = !loading
                     ) {
-                        if (loading) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        } else {
-                            Text(
-                                "Create Account",
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(ButtonGradient, RoundedCornerShape(16.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (loading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    strokeWidth = 3.dp,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else {
+                                Text(
+                                    "CREATE ACCOUNT",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                )
+                            }
                         }
                     }
 
@@ -266,12 +315,16 @@ fun RegisterScreen(navController: NavController) {
                     ) {
                         Text(
                             "Already have an account? ",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
                         )
                         Text(
                             "Sign In",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = AquaCyan
+                            ),
                             modifier = Modifier
                                 .clickable { navController.navigate(Screen.Login.route) }
                                 .padding(4.dp)
@@ -281,54 +334,4 @@ fun RegisterScreen(navController: NavController) {
             }
         }
     }
-}
-
-// Premium styled text field component
-@Composable
-fun PremiumTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    iconRes: Int? = null
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = {
-            Text(
-                label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        visualTransformation = visualTransformation,
-        trailingIcon = trailingIcon,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-        ),
-        shape = RoundedCornerShape(12.dp),
-        leadingIcon = iconRes?.let {
-            {
-                Icon(
-                    painter = painterResource(it),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        },
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-    )
 }
